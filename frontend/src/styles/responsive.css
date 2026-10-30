@@ -1,0 +1,735 @@
+@media (min-width: 1500px) {
+  :root {
+    --sidebar: 245px;
+  }
+  .page {
+    padding: 42px 52px;
+  }
+  .hero {
+    min-height: 370px;
+  }
+  .hero-copy {
+    padding: 38px 42px;
+  }
+  .hero h2 {
+    font-size: 50px;
+  }
+  .hero-board {
+    width: 315px;
+  }
+  .home-grid {
+    gap: 28px;
+  }
+  .hero-copy > p {
+    font-size: 13px;
+  }
+  .challenge-card > p {
+    font-size: 12px;
+  }
+}
+@media (max-width: 1150px) {
+  :root {
+    --sidebar: 190px;
+  }
+  .sidebar {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+  .brand {
+    font-size: 25px;
+  }
+  .brand-tagline {
+    font-size: 8px;
+  }
+  .topbar {
+    padding: 0 28px;
+  }
+  .page {
+    padding: 28px;
+  }
+  .hero h2 {
+    font-size: 35px;
+  }
+  .hero-copy {
+    padding: 28px;
+  }
+  .hero-board {
+    width: 235px;
+  }
+  .hero-art-caption {
+    font-size: 7px;
+    right: 20px;
+  }
+  .home-grid {
+    gap: 18px;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  }
+  .challenge-grid {
+    gap: 10px;
+  }
+  .challenge-card {
+    padding: 16px 14px 0;
+  }
+  .challenge-card h3 {
+    font-size: 13px;
+  }
+  .challenge-card > p {
+    font-size: 10px;
+    min-height: 55px;
+  }
+  .card-bottom {
+    font-size: 7px;
+  }
+  .puzzle-mini {
+    width: 85px;
+  }
+  .puzzle-preview {
+    padding: 16px 14px 0;
+  }
+  .puzzle-preview-content {
+    gap: 12px;
+  }
+  .puzzle-preview h3 {
+    font-size: 19px;
+  }
+  .puzzle-preview .eyebrow {
+    font-size: 7px;
+    letter-spacing: 0.5px;
+  }
+  .thought-end {
+    display: none;
+  }
+  .play-layout {
+    grid-template-columns: minmax(0, 1.6fr) minmax(240px, 1fr);
+    gap: 18px;
+  }
+  .profile-grid {
+    grid-template-columns: 235px minmax(0, 1fr);
+    gap: 18px;
+  }
+  .profile-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  .stat-card {
+    display: grid;
+    grid-template-columns: 25px 1fr;
+    gap: 0 10px;
+  }
+  .stat-card strong {
+    margin: 0;
+    font-size: 23px;
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .stat-card span {
+    grid-column: 2;
+  }
+  .danger-zone {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .page-heading h1 {
+    font-size: 29px;
+  }
+  footer {
+    margin-left: 28px;
+    margin-right: 28px;
+  }
+}
+@media (max-width: 900px) {
+  :root {
+    --sidebar: 75px;
+  }
+  .sidebar {
+    padding: 25px 9px;
+  }
+  .brand {
+    padding: 0;
+    justify-content: center;
+  }
+  .brand > span:last-child,
+  .brand-tagline,
+  .nav-link > span,
+  .sidebar-note,
+  .guest-link > span:nth-child(2),
+  .guest-link > svg {
+    display: none;
+  }
+  .brand-mark {
+    width: 35px;
+    height: 42px;
+  }
+  .sidebar nav {
+    margin-top: 35px;
+    gap: 13px;
+  }
+  .nav-link {
+    justify-content: center;
+    padding: 12px;
+  }
+  .sidebar-bottom {
+    display: flex;
+    justify-content: center;
+  }
+  .guest-link {
+    padding: 0;
+  }
+  .topbar {
+    height: 68px;
+  }
+  .page-heading h1 {
+    font-size: 28px;
+  }
+  .hero-art {
+    width: 42%;
+  }
+  .hero-copy {
+    width: 58%;
+  }
+  .hero h2 {
+    font-size: 34px;
+  }
+  .hero-board {
+    width: 220px;
+  }
+  .hero-footnote {
+    font-size: 8px;
+  }
+  .home-grid {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+  .challenge-grid {
+    grid-template-columns: 1fr;
+  }
+  .challenge-card {
+    padding: 15px;
+    display: grid;
+    grid-template-columns: 45px 1fr;
+    gap: 2px 12px;
+  }
+  .challenge-top {
+    grid-row: 1/4;
+    display: block;
+    margin: 0;
+  }
+  .challenge-top > svg {
+    display: none;
+  }
+  .feature-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .challenge-card h3 {
+    align-self: end;
+    margin: 0;
+  }
+  .challenge-card > p {
+    min-height: 0;
+    line-height: 1.65;
+  }
+  .card-bottom {
+    grid-column: 2;
+    margin: 7px 0 0;
+    padding: 6px 0 0;
+  }
+  .puzzle-preview-content {
+    flex-direction: column;
+    align-items: flex-start;
+    margin: 14px 0;
+  }
+  .puzzle-mini {
+    width: 100%;
+    max-width: 130px;
+    align-self: center;
+  }
+  .puzzle-preview h3 {
+    font-size: 22px;
+  }
+  .journey-stats > div + div {
+    padding-left: 15px;
+  }
+  .home-right .section-heading {
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .recent-heading {
+    margin-top: 22px;
+  }
+  .empty-games.compact {
+    padding: 28px 13px;
+    min-height: 190px;
+  }
+  .play-layout {
+    grid-template-columns: minmax(0, 1.5fr) minmax(220px, 1fr);
+    gap: 15px;
+  }
+  .player-clock {
+    font-size: 20px;
+    min-width: 90px;
+    padding: 7px;
+  }
+  .player-clock > svg {
+    display: none;
+  }
+  .player-info strong {
+    font-size: 11px;
+  }
+  .game-panel-top {
+    padding: 13px 12px;
+  }
+  .game-panel-top .pill {
+    font-size: 9px;
+  }
+  .puzzle-panel {
+    padding: 18px;
+  }
+  .game-controls {
+    padding: 10px;
+  }
+  .theme-options button {
+    width: 74px;
+  }
+  .profile-grid {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+  .profile-card {
+    padding: 18px;
+  }
+  .avatar-options {
+    gap: 5px;
+  }
+  .avatar-options button {
+    width: 37px;
+  }
+  .history-result {
+    max-width: 70px;
+  }
+  .history-row {
+    padding: 12px;
+    gap: 8px;
+  }
+  .history-row strong {
+    font-size: 10px;
+  }
+}
+@media (max-width: 700px) {
+  :root {
+    --sidebar: 0px;
+  }
+  .sidebar {
+    display: none;
+  }
+  .topbar {
+    height: 66px;
+    padding: 0 18px;
+  }
+  .breadcrumb {
+    display: none;
+  }
+  .mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 22px;
+    letter-spacing: -1px;
+  }
+  .mobile-brand .brand-mark {
+    width: 25px;
+    height: 31px;
+  }
+  .top-actions {
+    gap: 8px;
+  }
+  .top-actions .top-divider,
+  .top-avatar {
+    display: none;
+  }
+  .language-control {
+    gap: 4px;
+  }
+  .language-control select {
+    font-size: 10px;
+  }
+  .language-control > svg:first-child {
+    width: 14px;
+  }
+  .language-control > svg:last-child {
+    display: none;
+  }
+  .page {
+    padding: 25px 18px;
+  }
+  .page-heading {
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .page-heading h1 {
+    font-size: 27px;
+  }
+  .page-heading > div > p:last-child:not(.eyebrow) {
+    font-size: 11px;
+    line-height: 1.7;
+    max-width: 320px;
+  }
+  .home-heading {
+    align-items: flex-start;
+  }
+  .demo-badge {
+    font-size: 6px;
+    padding: 6px;
+    gap: 4px;
+    margin-top: 3px;
+  }
+  .home-heading h1 {
+    font-size: 27px;
+    max-width: 260px;
+  }
+  .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1.3px;
+  }
+  .hero {
+    min-height: 415px;
+  }
+  .hero-copy {
+    width: 100%;
+    padding: 26px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .hero-copy a {
+    pointer-events: auto;
+  }
+  .hero h2 {
+    font-size: 36px;
+    max-width: 310px;
+    position: relative;
+    z-index: 2;
+    margin-top: 15px;
+  }
+  .hero-copy > p {
+    max-width: 230px;
+    position: relative;
+    z-index: 2;
+    font-size: 11px;
+  }
+  .hero-button {
+    position: relative;
+    z-index: 2;
+    min-width: 140px;
+    margin-top: 18px;
+  }
+  .hero-footnote {
+    display: none;
+  }
+  .hero-art {
+    position: absolute;
+    right: -45px;
+    bottom: -25px;
+    width: 230px;
+    height: 230px;
+    z-index: 0;
+    opacity: 0.8;
+  }
+  .hero-board {
+    width: 210px;
+  }
+  .hero-art-caption {
+    display: none;
+  }
+  .orbit-one {
+    width: 340px;
+    height: 340px;
+    right: -10px;
+    top: -40px;
+  }
+  .orbit-two {
+    width: 430px;
+    height: 430px;
+    top: -90px;
+    right: -55px;
+  }
+  .home-grid {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  .challenge-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 11px;
+  }
+  .challenge-card {
+    display: block;
+    padding: 17px 15px 0;
+  }
+  .challenge-top {
+    display: flex;
+    margin-bottom: 14px;
+  }
+  .challenge-top > svg {
+    display: block;
+    width: 16px;
+  }
+  .challenge-card h3 {
+    font-size: 14px;
+    min-height: 22px;
+    margin-bottom: 6px;
+  }
+  .challenge-card > p {
+    font-size: 10px;
+    min-height: 52px;
+  }
+  .card-bottom {
+    padding: 11px 0;
+    margin-top: 13px;
+    font-size: 7px;
+  }
+  .home-right {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 17px;
+  }
+  .puzzle-preview {
+    padding: 19px 19px 0;
+  }
+  .puzzle-preview .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1px;
+  }
+  .puzzle-preview-content {
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+  }
+  .puzzle-mini {
+    width: 105px;
+  }
+  .puzzle-preview h3 {
+    font-size: 25px;
+  }
+  .puzzle-preview-content p {
+    font-size: 11px;
+  }
+  .puzzle-link {
+    font-size: 12px;
+  }
+  .journey {
+    margin-top: 0;
+    padding: 20px;
+  }
+  .journey-stats > div + div {
+    padding-left: 25px;
+  }
+  .journey-stats span {
+    font-size: 11px;
+  }
+  .journey-stats {
+    margin: 18px 0;
+  }
+  .journey > p {
+    font-size: 9px;
+  }
+  .empty-games.compact {
+    min-height: 180px;
+  }
+  .thought {
+    margin-top: 25px;
+    padding-bottom: 0;
+  }
+  .thought p {
+    font-size: 16px;
+  }
+  .thought .eyebrow {
+    font-size: 7px;
+  }
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 7px 5px max(9px, env(safe-area-inset-bottom));
+    z-index: 50;
+    justify-content: space-around;
+    gap: 3px;
+  }
+  .mobile-nav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+    color: var(--muted);
+    font-size: 8px;
+    min-width: 52px;
+    min-height: 44px;
+    padding: 4px 5px;
+    border-radius: 5px;
+  }
+  .mobile-nav a.active {
+    color: var(--green);
+    background: var(--green-soft);
+  }
+  footer {
+    margin: 5px 18px 75px;
+    padding: 17px 0;
+    gap: 10px;
+    font-size: 7px;
+  }
+  footer > span:last-child {
+    display: none;
+  }
+  footer > span:nth-child(2) {
+    font-size: 7px;
+  }
+  .play-layout {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .play-page .page-heading h1 {
+    font-size: 30px;
+  }
+  .page-heading > .button {
+    font-size: 10px;
+    padding: 10px 12px;
+    gap: 6px;
+  }
+  .player-strip {
+    min-height: 61px;
+  }
+  .player-clock {
+    font-size: 24px;
+    min-width: 110px;
+    padding: 5px 12px;
+  }
+  .player-clock > svg {
+    display: block;
+  }
+  .player-info strong {
+    font-size: 12px;
+  }
+  .game-panel {
+    margin-top: 0;
+    min-height: 0;
+  }
+  .game-status {
+    min-height: 135px;
+  }
+  .move-scroll {
+    height: 155px;
+  }
+  .game-panel-top {
+    padding: 14px 18px;
+  }
+  .game-controls .button {
+    font-size: 12px;
+  }
+  .puzzle-panel {
+    margin-top: 0;
+    padding: 24px;
+  }
+  .puzzle-status {
+    min-height: 170px;
+  }
+  .puzzle-panel > .eyebrow {
+    margin-top: 0;
+  }
+  .puzzle-status p {
+    max-width: 350px;
+  }
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-card {
+    padding: 25px;
+  }
+  .profile-card form {
+    max-width: 380px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .avatar-options button {
+    width: 48px;
+    height: 47px;
+  }
+  .profile-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  .stat-card {
+    padding: 20px;
+  }
+  .stat-card span {
+    font-size: 11px;
+  }
+  .history-result {
+    max-width: none;
+  }
+  .history-row strong {
+    font-size: 12px;
+  }
+  .history-row {
+    padding: 15px;
+  }
+  .settings-panel {
+    padding: 0 19px;
+  }
+  .setting-row {
+    gap: 15px;
+  }
+  .setting-row h3 {
+    font-size: 12px;
+  }
+  .theme-setting {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .theme-options {
+    width: 100%;
+  }
+  .theme-options button {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+  .danger-zone {
+    padding: 22px;
+  }
+  .danger-zone .button {
+    max-width: 100%;
+    font-size: 10px;
+  }
+  .storage-alert {
+    padding: 12px 18px;
+    font-size: 10px;
+  }
+  .file-label,
+  .rank-label {
+    font-size: 11px;
+  }
+  .dialog {
+    padding: 20px;
+  }
+  .dialog-head h2 {
+    font-size: 24px;
+  }
+  .settings-page .page-heading > svg {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+[data-reduced="true"] *,
+[data-reduced="true"] *::before,
+[data-reduced="true"] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
