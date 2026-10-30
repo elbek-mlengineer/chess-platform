@@ -123,8 +123,8 @@
   pointer-events: none;
 }
 .hero-board .chessboard {
-  --board-light: #eeeed2;
-  --board-dark: #769656;
+  --board-light: #ebecd0;
+  --board-dark: #739552;
   border-radius: 0;
   box-shadow: none;
 }

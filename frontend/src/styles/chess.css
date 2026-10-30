@@ -54,22 +54,6 @@
   pointer-events: none;
   filter: none;
 }
-.piece-w g {
-  fill: #f9f9f9;
-  stroke: #555451;
-}
-.piece-b g {
-  fill: #575650;
-  stroke: #302f2b;
-}
-.piece .piece-detail {
-  fill: none;
-}
-.piece .piece-eye {
-  fill: currentColor;
-  stroke: none;
-  color: #302f2b;
-}
 .legal-dot {
   position: absolute;
   width: 23%;

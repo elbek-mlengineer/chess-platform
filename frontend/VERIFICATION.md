@@ -32,3 +32,7 @@ Screenshots are in `docs/screenshots/` and include desktop light/dark dashboard 
 ## Verification limits
 
 Browser checks were driven through the in-app browser tools, not a checked-in Playwright runner. Native desktop drag and hardware touch gestures, audible sound output, and other browser engines were not exercised. Keyboard navigation and promotion are covered by React Testing Library. No real accounts, networking, multiplayer, or tournament-complete adjudication is claimed; see README for the demo rules and storage limits.
+
+## Dark Reader hydration follow-up
+
+The supplied browser log identified `data-darkreader-inline-color` attributes injected into SVG icons before hydration. The root server document now includes Dark Reader's supported `darkreader-lock` meta marker before the body. The app retains its own light/dark/system controls; no broad hydration-warning suppression was added. The new initial-document regression test passed, bringing the suite to 41 passing tests. Type checking, lint, and production build also passed. The installed browser extension itself was not exercised in the automated environment; a full reload is required in the affected browser.

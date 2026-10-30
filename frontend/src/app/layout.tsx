@@ -16,6 +16,9 @@ export default function RootLayout({
   return (
     <html lang="uz" suppressHydrationWarning>
       <head>
+        {/* Dark Reader must see this before it can mutate icons during hydration.
+            Shatranj manages light, dark, and system themes itself. */}
+        <meta name="darkreader-lock" content="" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>

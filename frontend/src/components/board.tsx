@@ -1,87 +1,10 @@
 "use client";
 import { useState, useRef, type KeyboardEvent } from "react";
-import {
-  SQUARES,
-  type Chess,
-  type Color,
-  type PieceSymbol,
-  type Square,
-} from "chess.js";
+import { SQUARES, type Chess, type Color, type Square } from "chess.js";
 import { useApp } from "./provider";
 import { Dialog } from "./dialog";
-import type { TextKey } from "@/lib/i18n";
-export const pieceNames: Record<PieceSymbol, TextKey> = {
-  p: "pawn",
-  n: "knight",
-  b: "bishop",
-  r: "rook",
-  q: "queen",
-  k: "king",
-};
-// Original vector silhouettes styled to match the supplied classic-piece reference.
-const shapes: Record<PieceSymbol, React.ReactNode> = {
-  p: (
-    <>
-      <path d="M15 54c0-7 4-10 8-15l3-7c-5 0-7-2-7-4 0-2 3-3 5-4-3-2-4-5-4-8a10 10 0 0 1 20 0c0 3-1 6-4 8 2 1 5 2 5 4 0 2-2 4-7 4l3 7c4 5 8 8 8 15Z" />
-      <path className="piece-detail" d="M24 32h12" />
-    </>
-  ),
-  r: (
-    <>
-      <path d="M11 54v-7c1-3 4-5 7-6l2-21-5-2-2-12h8v6h6V6h7v6h6V6h8l-2 12-5 2 2 21c4 1 6 3 7 6v7Z" />
-      <path className="piece-detail" d="M20 20h20M18 41h24M12 47h36" />
-    </>
-  ),
-  n: (
-    <>
-      <path d="M11 54v-7c0-5 4-8 8-9 0-6 5-11 10-16-5 3-8 7-13 9l-7-5 4-10 8-7 4-7 5 5c9 1 15 7 17 15 2 8 2 16-1 24l3 2v6Z" />
-      <path
-        className="piece-detail"
-        d="M12 46h34M19 38h22M28 23c5-1 7-5 7-8M14 25l3 1"
-      />
-      <circle className="piece-eye" cx="24" cy="14" r="1.7" />
-    </>
-  ),
-  b: (
-    <>
-      <path d="M10 54v-6c1-4 7-7 13-8l2-6c-7-1-10-5-10-10 0-7 7-14 12-18 0-5 7-6 8-1 0 3-2 4-4 5 8 6 12 11 12 17 0 5-4 8-10 9l2 5c7 1 13 4 14 8v5Z" />
-      <path className="piece-detail" d="M31 11l-5 18M23 40h12M11 48h37" />
-    </>
-  ),
-  q: (
-    <>
-      <path d="M12 54v-6l6-6-6-23 10 10 8-20 8 20 10-10-6 23 6 6v6Z" />
-      <circle cx="11" cy="16" r="4.5" />
-      <circle cx="23" cy="10" r="4.5" />
-      <circle cx="37" cy="10" r="4.5" />
-      <circle cx="49" cy="16" r="4.5" />
-      <path className="piece-detail" d="M18 42h24M13 48h34" />
-    </>
-  ),
-  k: (
-    <>
-      <path d="M27 5h6v5h5v6h-5v8h-6v-8h-5v-6h5Z" />
-      <path
-        fillRule="evenodd"
-        d="M12 54v-6c1-4 4-7 8-9-7-5-12-11-12-17 0-8 8-11 14-7 4 2 6 5 8 9 2-4 4-7 8-9 6-4 14-1 14 7 0 6-5 12-12 17 4 2 7 5 8 9v6ZM18 23c-1 0-2 1-1 3 1 3 4 5 7 6l-1-7ZM42 23l-5 2-1 7c3-1 6-3 7-6 1-2 0-3-1-3Z"
-      />
-      <path className="piece-detail" d="M20 39h20M13 48h34" />
-    </>
-  ),
-};
-export function Piece({ type, color }: { type: PieceSymbol; color: Color }) {
-  return (
-    <svg
-      className={`piece piece-${color}`}
-      viewBox="0 0 60 60"
-      aria-hidden="true"
-    >
-      <g strokeLinejoin="round" strokeLinecap="round" strokeWidth="1.8">
-        {shapes[type]}
-      </g>
-    </svg>
-  );
-}
+import { Piece, pieceNames } from "./piece";
+export { Piece } from "./piece";
 interface BoardProps {
   chess: Chess;
   orientation?: Color;

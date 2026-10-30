@@ -74,4 +74,8 @@ SOFTWARE.
 
 ## Original assets and engine
 
-The logo, inline chess piece geometry, instructional puzzle compositions, and minimax engine were created for this application. No Stockfish code, remote images, or Chess.com assets are included. Runtime and tooling dependencies retain their license files in node_modules; distribute those notices with their packages.
+The logo, instructional puzzle compositions, and minimax engine were created for this application. No Stockfish code or remotely loaded images are included.
+
+## User-supplied chess piece reference
+
+`public/pieces/reference-board.png` is the image supplied by the user for this design change. The interface displays its twelve piece appearances using SVG viewports and a color-key filter. It is not original Shatranj artwork; no ownership or third-party license is asserted. The original file is retained unchanged. Runtime and tooling dependencies retain their license files in node_modules; distribute those notices with their packages.

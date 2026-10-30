@@ -56,7 +56,9 @@ Draw adjudication is simplified: chess.js threefold repetition, fifty-move, stal
 
 Puzzles follow one intended instructional line; other immediate checkmates are accepted. They do not exhaustively grade alternative winning plans or equivalent multi-move variations. The promotion exercise specifically asks for a queen. Puzzle strengths are instructional labels, not ratings. Positions and every solution move are verified in tests. Local two-player results are kept separate from computer wins/draws/losses, measured from the human player’s color.
 
-System fonts, original SVG pieces and logo, and locally bundled icons keep the app independent of remote image/font services. See `THIRD_PARTY_NOTICES.md` for license notices.
+The initial HTML includes Dark Reader’s supported `darkreader-lock` meta marker. Shatranj manages its own light/dark/system appearance; the marker prevents extension-injected SVG attributes from causing hydration mismatches.
+
+System fonts, pieces matching the user-supplied reference image, an original SVG logo, and locally bundled icons keep the app independent of remote image/font services. See `THIRD_PARTY_NOTICES.md` for license notices.
 
 ## Verification
 
