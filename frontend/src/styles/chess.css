@@ -623,3 +623,48 @@ legend,
   font-size: 18px;
   margin-top: 30px;
 }
+.square.premove-selected,
+.square.premove-square {
+  box-shadow: inset 0 0 0 4px #548bdd;
+  background: #a9c3df;
+}
+.square-dark.premove-square {
+  background: #7899bc;
+}
+.legal-dot.premove-dot {
+  background: #285d9b80;
+}
+.capture-dot.premove-dot {
+  border-color: #285d9b99;
+}
+.premove-marker {
+  position: absolute;
+  right: 4px;
+  top: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #183b6a;
+  pointer-events: none;
+}
+.premove-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 9px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+.premove-panel strong {
+  color: var(--green);
+  font-weight: 600;
+  margin-right: 8px;
+}
+.premove-panel button {
+  flex-shrink: 0;
+}

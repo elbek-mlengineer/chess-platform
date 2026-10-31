@@ -1,6 +1,7 @@
 import type { GameSession } from "./chess";
 import { position, timeControls } from "./chess";
 import type { Locale } from "./i18n";
+import { SQUARES } from "chess.js";
 export interface Preferences {
   locale: Locale;
   theme: "light" | "dark" | "system";
@@ -46,6 +47,17 @@ function isColor(value: unknown): value is "w" | "b" {
 }
 export function validSession(value: unknown): value is GameSession {
   if (!isObject(value)) return false;
+  if (value.premove !== undefined && value.premove !== null) {
+    const queued = value.premove;
+    if (
+      !isObject(queued) ||
+      !isColor(queued.color) ||
+      !SQUARES.some((square) => square === queued.from) ||
+      !SQUARES.some((square) => square === queued.to) ||
+      !["q", "r", "b", "n"].includes(String(queued.promotion))
+    )
+      return false;
+  }
   const {
     id,
     mode,
@@ -182,7 +194,10 @@ export function loadLocal(): {
   }
   try {
     data = parseData(localStorage.getItem(dataKey));
-    if (data.active && !data.active.result) data.active.paused = true;
+    if (data.active) {
+      data.active.premove = null;
+      if (!data.active.result) data.active.paused = true;
+    }
   } catch {
     error = true;
   }

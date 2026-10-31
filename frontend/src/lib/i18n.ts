@@ -1,4 +1,11 @@
 export const en = {
+  premoveHelp:
+    "On your opponent’s turn, select your piece, then a destination to queue one premove. You can also select just a piece and choose its destination after the reply. Illegal plans are discarded. Escape or right-click cancels.",
+  premoveQueued: "Premove queued",
+  premoveTarget: "premove destination",
+  premoveFrom: "premove source",
+  premoveTo: "queued destination",
+  cancelPremove: "Cancel premove",
   home: "Overview",
   play: "Play chess",
   puzzles: "Puzzles",
@@ -189,6 +196,13 @@ export type TextKey = keyof typeof en;
 export type Locale = "uz" | "en" | "ru";
 type Dictionary = Record<TextKey, string>;
 const uz: Dictionary = {
+  premoveHelp:
+    "Raqib navbatida donangizni, keyin manzilini bosing — bitta oldindan yurish belgilanadi. Faqat donani tanlab, manzilini keyin ham bosishingiz mumkin. Noqonuniy reja bekor qilinadi. Escape yoki o‘ng tugma bilan bekor qiling.",
+  premoveQueued: "Oldindan yurish belgilandi",
+  premoveTarget: "oldindan yurish manzili",
+  premoveFrom: "oldindan tanlangan dona",
+  premoveTo: "belgilangan manzil",
+  cancelPremove: "Oldindan yurishni bekor qilish",
   home: "Bosh sahifa",
   play: "Shaxmat o‘ynash",
   puzzles: "Masalalar",
@@ -378,6 +392,13 @@ const uz: Dictionary = {
   club: "SHATRANJ KLUBI",
 };
 const ru: Dictionary = {
+  premoveHelp:
+    "Во время хода соперника выберите свою фигуру и поле для одного предхода. Можно выбрать только фигуру, а поле — после ответа. Недопустимый предход отменяется. Escape или правая кнопка мыши отменяет выбор.",
+  premoveQueued: "Предход запланирован",
+  premoveTarget: "поле для предхода",
+  premoveFrom: "фигура для предхода",
+  premoveTo: "запланированное поле",
+  cancelPremove: "Отменить предход",
   home: "Обзор",
   play: "Играть",
   puzzles: "Задачи",

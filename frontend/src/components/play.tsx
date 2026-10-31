@@ -12,6 +12,7 @@ import {
   Handshake,
   Clock3,
   RotateCcw,
+  X,
 } from "lucide-react";
 import { useApp } from "./provider";
 import { Board, Piece } from "./board";
@@ -149,12 +150,17 @@ export function Play() {
               chess={chess}
               orientation={orientation}
               onMove={game.move}
+              allowPremoves
+              playerColor={
+                session?.mode === "computer" ? session.human : undefined
+              }
+              premove={session?.premove}
+              onCancelPremove={game.cancelPremove}
               lastMove={last}
               disabled={
                 !session ||
                 !!session.result ||
                 session.paused ||
-                game.thinking ||
                 game.engineError
               }
             />
@@ -196,6 +202,31 @@ export function Play() {
               <Download size={18} />
             </button>
           </div>
+          {session && !session.result && !session.paused && (
+            <div className="premove-panel" aria-live="polite">
+              {session.premove ? (
+                <>
+                  <span>
+                    <strong>{t("premoveQueued")}</strong> {session.premove.from}{" "}
+                    → {session.premove.to}
+                    {session.premove.promotion !== "q"
+                      ? ` =${session.premove.promotion.toUpperCase()}`
+                      : ""}
+                  </span>
+                  <button
+                    className="icon-button"
+                    onClick={game.cancelPremove}
+                    aria-label={t("cancelPremove")}
+                    title={t("cancelPremove")}
+                  >
+                    <X size={17} />
+                  </button>
+                </>
+              ) : (
+                <p>{t("premoveHelp")}</p>
+              )}
+            </div>
+          )}
         </section>
         <aside className="game-panel panel">
           <div className="game-panel-top">

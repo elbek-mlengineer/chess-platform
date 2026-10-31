@@ -126,4 +126,30 @@ describe("game lifecycle", () => {
     expect(result.current.game.thinking).toBe(false);
     expect(MockWorker.instances.at(-1)?.terminate).toHaveBeenCalled();
   });
+  it("keeps the same worker search when a premove is queued or cancelled", () => {
+    const { result } = mount("computer", "w");
+    act(() => result.current.game.resume());
+    act(() => result.current.game.move("e2", "e4", "q"));
+    act(() => vi.advanceTimersByTime(350));
+    const worker = MockWorker.instances.at(-1)!;
+    const count = MockWorker.instances.length;
+    act(() => result.current.game.move("g1", "f3", "q"));
+    expect(result.current.game.session?.premove?.to).toBe("f3");
+    expect(MockWorker.instances).toHaveLength(count);
+    expect(worker.terminate).not.toHaveBeenCalled();
+    act(() => result.current.game.cancelPremove());
+    expect(result.current.game.session?.premove).toBeNull();
+    expect(worker.terminate).not.toHaveBeenCalled();
+    act(() => result.current.game.move("g1", "f3", "q"));
+    const game = result.current.game.session!;
+    act(() =>
+      worker.onmessage?.(
+        new MessageEvent("message", {
+          data: { id: game.id, fen: position(game.moves).fen(), move: "Nc6" },
+        }),
+      ),
+    );
+    expect(result.current.game.session?.moves).toEqual(["e4", "Nc6", "Nf3"]);
+    expect(result.current.game.session?.premove).toBeNull();
+  });
 });

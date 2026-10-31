@@ -36,3 +36,11 @@ Browser checks were driven through the in-app browser tools, not a checked-in Pl
 ## Dark Reader hydration follow-up
 
 The supplied browser log identified `data-darkreader-inline-color` attributes injected into SVG icons before hydration. The root server document now includes Dark Reader's supported `darkreader-lock` meta marker before the body. The app retains its own light/dark/system controls; no broad hydration-warning suppression was added. The new initial-document regression test passed, bringing the suite to 41 passing tests. Type checking, lint, and production build also passed. The installed browser extension itself was not exercised in the automated environment; a full reload is required in the affected browser.
+
+## Premoves and preselection follow-up
+
+Added one queued premove and persistent piece-only preselection while the opponent is moving. Computer input is limited to the human color; local two-player games permit the waiting side to queue a reply. A legal queued reply executes in the same transaction as the opponent move; illegal replies are consumed without changing the actual board. Queue changes do not restart the engine worker. Leaving Play, reload recovery, and terminal results clear pending plans.
+
+Automated checks passed: 58 tests, strict TypeScript, ESLint, and production build. New tests cover real move execution, check and capture invalidation, mate and timeout, pawn capture anticipation, en passant, castling, underpromotion, local two-player input, reload cleanup, retained selection, keyboard/right-click cancellation, and worker-search continuity.
+
+In the production browser, a local black g8–f6 premove was queued before White's turn. After e2–e4, the board automatically played Nf6 and the move history showed both moves. The queued state was recorded in `docs/screenshots/premove-queued.jpg`. The browser flow was isolated on a temporary local origin to avoid changing saved data on the main development origin.

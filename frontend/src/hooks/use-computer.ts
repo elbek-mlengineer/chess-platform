@@ -29,9 +29,12 @@ export function useComputer(
     !session.paused &&
     !session.result &&
     position(session.moves).turn() !== session.human;
+  const gameId = session?.id;
+  const fen = session ? position(session.moves).fen() : "";
+  const difficulty = session?.difficulty;
   useEffect(() => {
-    if (!session || !thinking) return;
-    const request = { id: session.id, fen: position(session.moves).fen() };
+    if (!gameId || !difficulty || !thinking) return;
+    const request = { id: gameId, fen };
     let worker: Worker | null = null;
     let cancelled = false;
     let watchdog: ReturnType<typeof setTimeout> | undefined;
@@ -77,7 +80,7 @@ export function useComputer(
         };
         worker.onerror = fail;
         watchdog = setTimeout(fail, 6000);
-        worker.postMessage({ ...request, difficulty: session.difficulty });
+        worker.postMessage({ ...request, difficulty });
       } catch {
         fail();
       }
@@ -88,7 +91,7 @@ export function useComputer(
       clearTimeout(watchdog);
       worker?.terminate();
     };
-  }, [session, thinking, onMove]);
+  }, [gameId, fen, difficulty, thinking, onMove]);
   const engineError = session?.id === failedGame;
   return { thinking: thinking && !engineError, engineError };
 }

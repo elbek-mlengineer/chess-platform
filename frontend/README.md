@@ -44,6 +44,14 @@ npm run format
 - `src/lib/storage.ts`: runtime validation and versioned device storage.
 - `src/lib/i18n.ts`: complete typed translation dictionaries. Focused page components, dialogs, and the board live in `src/components/`. CSS is separated by concern in `src/styles/` and imported once through `src/app/globals.css`.
 
+## Premoves and preselection
+
+During the opponent's turn, select your piece and a destination to queue one premove. Select just a piece to retain that selection across the opponent's reply and choose its destination later. Queued squares are blue; use the cancel button, Escape, or right-click to cancel. Selecting another piece of the same color replaces the existing plan. Computer games only accept input for the human color; local games allow either waiting side to plan a move.
+
+Planning hints are speculative: opposing blockers are removed in a separate chess.js planning position, and pawn capture targets may be anticipated. The real board and clocks do not change while queuing. After the opponent's move, the queued reply is validated against the actual position by chess.js, consumed once, and executed only if legal. Both moves are committed atomically. The premove uses the same timestamp as the opponent's completed move (zero additional elapsed time in this local demo), and its increment is applied normally. Castling, en passant, and chosen promotions still require actual legality.
+
+A captured piece, new check, or illegal target discards the plan. Completion, timeout, leaving Play, replacement, and reload recovery clear pending intent. Queue changes do not restart a computer search. Multiple queued moves are not supported.
+
 ## Storage and demo boundaries
 
 Data stays in this browser on this device under `shatranj.preferences.v1` and `shatranj.data.v1`. It does not sync and is not authentication. Storage failures show a recovery notice while allowing in-memory play. Invalid preference and game records recover independently. History retains the 100 most recent completed games. Replacing an unfinished game requires confirmation and discards it without inventing a completed result. Clearing data requires confirmation.

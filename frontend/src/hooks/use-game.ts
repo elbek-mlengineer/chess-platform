@@ -3,34 +3,12 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import type { Square } from "chess.js";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/components/provider";
-import {
-  boardResult,
-  legalMove,
-  position,
-  type GameResult,
-  type GameSession,
-} from "@/lib/chess";
-import { clockAt, switchClock } from "@/lib/clock";
-import { engineResponseIsCurrent } from "@/lib/engine";
+import { type GameResult, type GameSession } from "@/lib/chess";
+import { clockAt } from "@/lib/clock";
+import { finishGame, playOrQueueMove } from "@/lib/game";
 import { useComputer, type PositionIdentity } from "./use-computer";
 import { useMoveSound } from "./use-move-sound";
 import { dataKey, saveLocal } from "@/lib/storage";
-function withResult(
-  game: GameSession,
-  result: GameResult,
-  now: number,
-): GameSession {
-  return {
-    ...game,
-    clock: {
-      ...game.clock,
-      ...clockAt(game.clock, now, !game.paused),
-      since: now,
-    },
-    result,
-    paused: false,
-  };
-}
 export function useGame() {
   const { data, setData, preferences, reportStorageError } = useApp();
   const session = data.active;
@@ -58,7 +36,7 @@ export function useGame() {
   const finish = useCallback(
     (result: GameResult) =>
       commit((game) =>
-        game.result ? game : withResult(game, result, Date.now()),
+        game.result ? game : finishGame(game, result, Date.now()),
       ),
     [commit],
   );
@@ -70,42 +48,13 @@ export function useGame() {
       engine = false,
       expected?: PositionIdentity,
     ) => {
-      commit((game) => {
-        if (game.result || game.paused) return game;
-        const chess = position(game.moves);
-        if (
-          expected &&
-          !engineResponseIsCurrent(expected, { id: game.id, fen: chess.fen() })
-        )
-          return game;
-        if (
-          game.mode === "computer" &&
-          (engine ? chess.turn() === game.human : chess.turn() !== game.human)
-        )
-          return game;
-        const timestamp = Date.now();
-        if (
-          game.clock.timed &&
-          clockAt(game.clock, timestamp)[game.clock.active] <= 0
-        )
-          return withResult(
-            game,
-            {
-              winner: game.clock.active === "w" ? "b" : "w",
-              reason: "timeout",
-            },
-            timestamp,
-          );
-        const moved = legalMove(chess, from, to, promotion);
-        if (!moved) return game;
-        const next = {
-          ...game,
-          moves: [...game.moves, moved.san],
-          clock: switchClock(game.clock, timestamp),
-        };
-        const result = boardResult(chess);
-        return result ? withResult(next, result, timestamp) : next;
-      });
+      commit((game) =>
+        playOrQueueMove(
+          game,
+          { from, to, promotion, engine, expected },
+          Date.now(),
+        ),
+      );
     },
     [commit],
   );
@@ -167,6 +116,7 @@ export function useGame() {
           : {
               ...game,
               paused: true,
+              premove: null,
               clock: {
                 ...game.clock,
                 ...clockAt(game.clock, Date.now()),
@@ -181,6 +131,8 @@ export function useGame() {
     session,
     now,
     move,
+    cancelPremove: () =>
+      commit((game) => (game.premove ? { ...game, premove: null } : game)),
     finish,
     thinking,
     engineError,

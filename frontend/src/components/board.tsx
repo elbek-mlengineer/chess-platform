@@ -1,6 +1,14 @@
 "use client";
-import { useState, useRef, type KeyboardEvent } from "react";
-import { SQUARES, type Chess, type Color, type Square } from "chess.js";
+import { useState, useRef, useMemo, type KeyboardEvent } from "react";
+import {
+  SQUARES,
+  Chess,
+  type Color,
+  type Square,
+  type PieceSymbol,
+} from "chess.js";
+import type { Premove } from "@/lib/chess";
+import { premoveDestinations } from "@/lib/premove";
 import { useApp } from "./provider";
 import { Dialog } from "./dialog";
 import { Piece, pieceNames } from "./piece";
@@ -12,6 +20,10 @@ interface BoardProps {
   disabled?: boolean;
   lastMove?: { from: Square; to: Square };
   small?: boolean;
+  allowPremoves?: boolean;
+  playerColor?: Color;
+  premove?: Premove | null;
+  onCancelPremove?: () => void;
 }
 export function Board({
   chess,
@@ -20,40 +32,92 @@ export function Board({
   disabled = false,
   lastMove,
   small = false,
+  allowPremoves = false,
+  playerColor,
+  premove,
+  onCancelPremove,
 }: BoardProps) {
   const { t, preferences } = useApp();
   const [selection, setSelection] = useState<{
     square: Square;
-    fen: string;
+    color: Color;
+    type: PieceSymbol;
   } | null>(null);
   const [promotion, setPromotion] = useState<{
     from: Square;
     to: Square;
+    color: Color;
   } | null>(null);
   const [focus, setFocus] = useState(56);
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
-  const selected = selection?.fen === chess.fen() ? selection.square : null;
+  const selectedPiece = selection ? chess.get(selection.square) : undefined;
+  const selected =
+    !disabled &&
+    selection &&
+    selectedPiece?.color === selection.color &&
+    selectedPiece.type === selection.type
+      ? selection.square
+      : null;
+  const selectedColor = selection?.color;
+  const isPlanning = !!selected && selectedColor !== chess.turn();
+  const fen = chess.fen();
+  const plannedDestinations = useMemo(
+    () =>
+      isPlanning && selected && selectedColor
+        ? premoveDestinations(new Chess(fen), selected, selectedColor)
+        : [],
+    [fen, selected, selectedColor, isPlanning],
+  );
   const squares = orientation === "w" ? SQUARES : [...SQUARES].reverse();
-  const legal = selected
-    ? chess.moves({ square: selected, verbose: true })
-    : [];
+  const legal =
+    selected && !isPlanning
+      ? chess.moves({ square: selected, verbose: true })
+      : [];
   function attempt(from: Square, to: Square) {
+    const piece = chess.get(from);
+    if (!piece || (playerColor && piece.color !== playerColor)) return false;
+    const planning = piece.color !== chess.turn();
+    if (planning) {
+      if (
+        !allowPremoves ||
+        !premoveDestinations(chess, from, piece.color).includes(to)
+      )
+        return false;
+      if (piece.type === "p" && (to[1] === "1" || to[1] === "8"))
+        setPromotion({ from, to, color: piece.color });
+      else onMove?.(from, to, "q");
+      setSelection(null);
+      return true;
+    }
     const candidates = chess
       .moves({ square: from, verbose: true })
       .filter((m) => m.to === to);
     if (!candidates.length) return false;
-    if (candidates.some((m) => m.promotion)) setPromotion({ from, to });
+    if (candidates.some((m) => m.promotion))
+      setPromotion({ from, to, color: piece.color });
     else onMove?.(from, to, "q");
     setSelection(null);
     return true;
   }
   function activate(square: Square) {
     if (disabled || !onMove) return;
+    if (selected === square) {
+      setSelection(null);
+      onCancelPremove?.();
+      return;
+    }
     if (selected && attempt(selected, square)) return;
     const piece = chess.get(square);
-    setSelection(
-      piece?.color === chess.turn() ? { square, fen: chess.fen() } : null,
-    );
+    if (
+      !piece ||
+      (playerColor && piece.color !== playerColor) ||
+      (piece.color !== chess.turn() && !allowPremoves)
+    ) {
+      setSelection(null);
+      return;
+    }
+    if (premove?.color === piece.color) onCancelPremove?.();
+    setSelection({ square, color: piece.color, type: piece.type });
   }
   function key(event: KeyboardEvent, index: number) {
     const offsets: Record<string, number> = {
@@ -68,7 +132,10 @@ export function Board({
       setFocus(next);
       buttons.current[next]?.focus();
     }
-    if (event.key === "Escape") setSelection(null);
+    if (event.key === "Escape") {
+      setSelection(null);
+      onCancelPremove?.();
+    }
   }
   return (
     <>
@@ -78,10 +145,20 @@ export function Board({
         aria-hidden={small || undefined}
         aria-label={t("board")}
         aria-describedby={small ? undefined : "board-help"}
+        onContextMenu={(event) => {
+          if (!disabled && onMove) {
+            event.preventDefault();
+            setSelection(null);
+            onCancelPremove?.();
+          }
+        }}
       >
         {squares.map((square, index) => {
           const piece = chess.get(square);
           const isLegal = legal.some((move) => move.to === square);
+          const isPlannedDestination = plannedDestinations.includes(square);
+          const isQueuedFrom = premove?.from === square;
+          const isQueuedTo = premove?.to === square;
           const isCheck =
             chess.isCheck() &&
             piece?.type === "k" &&
@@ -95,16 +172,29 @@ export function Board({
               }}
               type="button"
               tabIndex={small ? -1 : index === focus ? 0 : -1}
-              className={`square ${dark ? "square-dark" : "square-light"} ${selected === square ? "selected" : ""} ${lastMove && (lastMove.from === square || lastMove.to === square) ? "last-move" : ""} ${isCheck ? "in-check" : ""}`}
-              aria-label={`${square}, ${piece ? `${t(piece.color === "w" ? "white" : "black")} ${t(pieceNames[piece.type])}` : t("empty")}${selected === square ? `, ${t("selected")}` : ""}${isLegal ? `, ${t("legal")}` : ""}${isCheck ? `, ${t("check")}` : ""}`}
+              className={`square ${dark ? "square-dark" : "square-light"} ${selected === square ? "selected" : ""} ${selected === square && isPlanning ? "premove-selected" : ""} ${isQueuedFrom || isQueuedTo ? "premove-square" : ""} ${lastMove && (lastMove.from === square || lastMove.to === square) ? "last-move" : ""} ${isCheck ? "in-check" : ""}`}
+              aria-label={`${square}, ${piece ? `${t(piece.color === "w" ? "white" : "black")} ${t(pieceNames[piece.type])}` : t("empty")}${selected === square ? `, ${t("selected")}` : ""}${isLegal ? `, ${t("legal")}` : ""}${isPlannedDestination ? `, ${t("premoveTarget")}` : ""}${isQueuedFrom ? `, ${t("premoveFrom")}` : ""}${isQueuedTo ? `, ${t("premoveTo")}` : ""}${isCheck ? `, ${t("check")}` : ""}`}
               aria-pressed={selected === square}
               onFocus={() => setFocus(index)}
               onKeyDown={(e) => key(e, index)}
               onClick={() => activate(square)}
-              draggable={!disabled && !!onMove && piece?.color === chess.turn()}
+              draggable={
+                !disabled &&
+                !!onMove &&
+                !!piece &&
+                (!playerColor || piece.color === playerColor) &&
+                (piece.color === chess.turn() || allowPremoves)
+              }
               onDragStart={(e) => {
                 e.dataTransfer.setData("text/plain", square);
-                setSelection({ square, fen: chess.fen() });
+                if (piece && premove?.color === piece.color)
+                  onCancelPremove?.();
+                if (piece)
+                  setSelection({
+                    square,
+                    color: piece.color,
+                    type: piece.type,
+                  });
               }}
               onDragOver={(e) => {
                 if (!disabled) e.preventDefault();
@@ -117,8 +207,15 @@ export function Board({
               }}
             >
               {piece && <Piece type={piece.type} color={piece.color} />}
-              {preferences.highlights && isLegal && (
-                <span className={piece ? "capture-dot" : "legal-dot"} />
+              {preferences.highlights && (isLegal || isPlannedDestination) && (
+                <span
+                  className={`${piece ? "capture-dot" : "legal-dot"} ${isPlannedDestination ? "premove-dot" : ""}`}
+                />
+              )}
+              {isQueuedTo && (
+                <span className="premove-marker" aria-hidden="true">
+                  ↝
+                </span>
               )}
               {isCheck && <span className="check-mark">!</span>}
               {preferences.coordinates && index % 8 === 0 && (
@@ -134,6 +231,7 @@ export function Board({
       {!small && (
         <p id="board-help" className="sr-only">
           {t("boardHelp")}
+          {allowPremoves && ` ${t("premoveHelp")}`}
         </p>
       )}
       {promotion && (
@@ -148,7 +246,7 @@ export function Board({
                   setPromotion(null);
                 }}
               >
-                <Piece type={type} color={chess.turn()} />
+                <Piece type={type} color={promotion.color} />
                 <span>{t(pieceNames[type])}</span>
               </button>
             ))}

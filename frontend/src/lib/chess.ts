@@ -23,7 +23,14 @@ export interface ClockState {
   increment: number;
   timed: boolean;
 }
+export interface Premove {
+  from: Square;
+  to: Square;
+  promotion: string;
+  color: Color;
+}
 export interface GameSession {
+  premove?: Premove | null;
   id: string;
   mode: GameMode;
   human: Color;

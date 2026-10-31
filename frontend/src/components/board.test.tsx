@@ -3,6 +3,8 @@ import { describe, it, expect, vi } from "vitest";
 import { Chess, type Square } from "chess.js";
 import { AppProvider } from "./provider";
 import { Board } from "./board";
+import type { ComponentProps } from "react";
+import { position } from "@/lib/chess";
 import {
   dataKey,
   preferenceKey,
@@ -12,6 +14,7 @@ import {
 function renderBoard(
   chess: Chess,
   onMove: (from: Square, to: Square, promotion: string) => void,
+  options: Partial<ComponentProps<typeof Board>> = {},
 ) {
   vi.useFakeTimers();
   localStorage.setItem(
@@ -19,12 +22,13 @@ function renderBoard(
     JSON.stringify({ ...defaultPreferences, locale: "en" }),
   );
   localStorage.setItem(dataKey, JSON.stringify(emptyData));
-  render(
+  const view = render(
     <AppProvider>
-      <Board chess={chess} onMove={onMove} />
+      <Board chess={chess} onMove={onMove} {...options} />
     </AppProvider>,
   );
   act(() => vi.advanceTimersByTime(1));
+  return view;
 }
 describe("accessible chessboard", () => {
   it("shows legal destinations and submits one selected move", () => {
@@ -74,5 +78,67 @@ describe("accessible chessboard", () => {
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Knight" }));
     expect(onMove).toHaveBeenCalledExactlyOnceWith("a7", "a8", "n");
+  });
+  it("accepts an own-piece premove while the computer is thinking", () => {
+    const onMove = vi.fn();
+    renderBoard(position(["e4"]), onMove, {
+      allowPremoves: true,
+      playerColor: "w",
+    });
+    fireEvent.click(screen.getByLabelText("g1, White Knight"));
+    fireEvent.click(screen.getByLabelText("f3, empty, premove destination"));
+    expect(onMove).toHaveBeenCalledExactlyOnceWith("g1", "f3", "q");
+  });
+  it("retains a preselected piece across the opponent reply", () => {
+    const onMove = vi.fn();
+    const view = renderBoard(position(["e4"]), onMove, {
+      allowPremoves: true,
+      playerColor: "w",
+    });
+    fireEvent.click(screen.getByLabelText("g1, White Knight"));
+    expect(onMove).not.toHaveBeenCalled();
+    view.rerender(
+      <AppProvider>
+        <Board
+          chess={position(["e4", "e5"])}
+          onMove={onMove}
+          allowPremoves
+          playerColor="w"
+        />
+      </AppProvider>,
+    );
+    expect(screen.getByLabelText("g1, White Knight, selected")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    fireEvent.click(screen.getByLabelText("f3, empty, legal destination"));
+    expect(onMove).toHaveBeenCalledExactlyOnceWith("g1", "f3", "q");
+  });
+  it("cancels a queued reply with Escape or right-click", () => {
+    const cancel = vi.fn();
+    renderBoard(position(["e4"]), vi.fn(), {
+      allowPremoves: true,
+      playerColor: "w",
+      premove: { from: "g1", to: "f3", promotion: "q", color: "w" },
+      onCancelPremove: cancel,
+    });
+    fireEvent.keyDown(
+      screen.getByLabelText("g1, White Knight, premove source"),
+      { key: "Escape" },
+    );
+    expect(cancel).toHaveBeenCalledTimes(1);
+    fireEvent.contextMenu(
+      screen.getByLabelText("f3, empty, queued destination"),
+    );
+    expect(cancel).toHaveBeenCalledTimes(2);
+  });
+  it("does not select computer-owned pieces for premoves", () => {
+    renderBoard(position(["e4"]), vi.fn(), {
+      allowPremoves: true,
+      playerColor: "w",
+    });
+    const pawn = screen.getByLabelText("e7, Black Pawn");
+    fireEvent.click(pawn);
+    expect(pawn).toHaveAttribute("aria-pressed", "false");
   });
 });
