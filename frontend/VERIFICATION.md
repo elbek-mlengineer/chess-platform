@@ -31,7 +31,7 @@ Screenshots are in `docs/screenshots/` and include desktop light/dark dashboard 
 
 ## Verification limits
 
-Browser checks were driven through the in-app browser tools, not a checked-in Playwright runner. Native desktop drag and hardware touch gestures, audible sound output, and other browser engines were not exercised. Keyboard navigation and promotion are covered by React Testing Library. No real accounts, networking, multiplayer, or tournament-complete adjudication is claimed; see README for the demo rules and storage limits.
+Browser checks were driven through the in-app browser tools, not a checked-in Playwright runner. Native desktop drag and hardware touch gestures, audible sound output, and other browser engines were not exercised. Keyboard navigation and promotion are covered by React Testing Library. The original checks covered local practice; the online follow-up records new account/multiplayer coverage. Tournament-complete adjudication is not claimed; see README for casual rules and storage limits.
 
 ## Dark Reader hydration follow-up
 
@@ -44,3 +44,13 @@ Added one queued premove and persistent piece-only preselection while the oppone
 Automated checks passed: 58 tests, strict TypeScript, ESLint, and production build. New tests cover real move execution, check and capture invalidation, mate and timeout, pawn capture anticipation, en passant, castling, underpromotion, local two-player input, reload cleanup, retained selection, keyboard/right-click cancellation, and worker-search continuity.
 
 In the production browser, a local black g8–f6 premove was queued before White's turn. After e2–e4, the board automatically played Nf6 and the move history showed both moves. The queued state was recorded in `docs/screenshots/premove-queued.jpg`. The browser flow was isolated on a temporary local origin to avoid changing saved data on the main development origin.
+
+## Online friends and multiplayer follow-up — 31 October 2026
+
+Final checks passed: **82 tests across eight files**, strict TypeScript, ESLint without warnings, and the production build. `/friends`, `/online` and the dynamic `/api/online` handler build successfully alongside the existing routes. No runtime package was added; the installed Node 22.18 runtime emits its documented experimental SQLite warning.
+
+New coverage includes salted password storage, hashed/expiring/revoked sessions, username uniqueness, input validation, rate limits, bidirectional discovery, request ownership, accept/decline/cancel, duplicate/crossed/self requests, removal/blocking, presence expiry, invitation expiry/ownership, one active game per account, shared game identity, authoritative move ownership/legality/ply/clocks, private premoves and cancellation, check invalidation, checkmate, timeout, draw consent, resignation, rematches and file-backed restart persistence. HTTP-handler integration drives two independent session cookies through registration, search, friendship, invitation, move and logout. It also checks CSRF rejection, anonymous access, invalid JSON, body limits, no-store responses and cookie attributes. Client tests check reconnect, late read responses, command serialization, preserved action errors and ten-second stalled-command recovery.
+
+Production browser QA used a separate temporary database and two invented accounts (`QaAlice`, `QaBob`). Through the UI, both accounts were created, each searched for the other, Bob sent a request, Alice accepted it and invited Bob to an untimed game as White, and Bob accepted. Bob queued g8–f6, then Alice's e2–e4 committed e4 and Nf6 together. The displayed board, ownership and two-ply history matched. After restarting the production server and reloading, the session, friendship and exact game position were restored. The final Friends page showed the search result, accepted friendship and shared active-game link. Screenshots: `docs/screenshots/online-friends.png` and `online-game.png`. No horizontal overflow was measured at the browser's default approximately 570 px viewport.
+
+The UI check switched accounts in one browser; isolated simultaneous sessions are covered by the HTTP integration tests. Two physical devices, real internet hosting, reverse-proxy TLS, load testing, other browser engines and native drag/touch were not exercised. This task did not publish the server. Remote friends must use the same reachable deployment; LAN setup and persistent-host constraints are documented in README. The temporary QA server and browser tab are stopped/closed after verification; its database is removed.

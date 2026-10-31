@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AppProvider } from "@/components/provider";
 import { Shell } from "@/components/shell";
+import { OnlineProvider } from "@/components/online-provider";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "Shatranj — Every move matters",
@@ -23,7 +24,9 @@ export default function RootLayout({
       </head>
       <body>
         <AppProvider>
-          <Shell>{children}</Shell>
+          <OnlineProvider>
+            <Shell>{children}</Shell>
+          </OnlineProvider>
         </AppProvider>
       </body>
     </html>

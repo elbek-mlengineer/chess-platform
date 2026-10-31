@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Private online accounts, sessions and game database (including WAL files)
+/.data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

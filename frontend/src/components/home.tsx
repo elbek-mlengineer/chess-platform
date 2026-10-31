@@ -16,8 +16,10 @@ import { useApp } from "./provider";
 import { Board } from "./board";
 import { GameList } from "./game-list";
 import { puzzles } from "@/lib/puzzles";
+import { useOnline } from "./online-provider";
 export function Home() {
   const { t, data } = useApp();
+  const { text } = useOnline();
   const preview = new Chess(
     "r1bq1rk1/ppp2ppp/2np1n2/4p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 0 1",
   );
@@ -97,10 +99,7 @@ export function Home() {
                 {t("easy")} · {t("medium")} · {t("hard")}
               </span>
             </Link>
-            <Link
-              className="challenge-card friend-card"
-              href="/play?mode=local"
-            >
+            <Link className="challenge-card friend-card" href="/friends">
               <div className="challenge-top">
                 <span className="feature-icon">
                   <Users size={24} />
@@ -108,10 +107,10 @@ export function Home() {
                 <ArrowUpRight size={20} />
               </div>
               <h3>{t("local")}</h3>
-              <p>{t("localHelp")}</p>
+              <p>{text.onlineHelp}</p>
               <span className="card-bottom">
                 <span className="small-dot" />
-                {t("localOnly")}
+                {text.friends}
               </span>
             </Link>
           </div>

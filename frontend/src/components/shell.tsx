@@ -12,12 +12,16 @@ import {
   Moon,
   Globe2,
   ChevronDown,
+  Users,
 } from "lucide-react";
 import { useApp } from "./provider";
 import { LanguageSelect } from "./language-select";
+import { useOnline } from "./online-provider";
+import { OnlineNotice } from "./online-notice";
 const navigation = [
   { href: "/", key: "home", icon: House },
   { href: "/play", key: "play", icon: Swords },
+  { href: "/friends", key: "friends", icon: Users },
   { href: "/puzzles", key: "puzzles", icon: Puzzle },
   { href: "/profile", key: "profile", icon: UserRound },
   { href: "/settings", key: "settings", icon: Settings2 },
@@ -42,6 +46,12 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const { t, setPreferences, data, ready, storageError, dismissError } =
     useApp();
   const path = usePathname();
+  const activePath = path === "/online" ? "/friends" : path;
+  const { text, state } = useOnline();
+  const label = (key: (typeof navigation)[number]["key"]) =>
+    key === "friends" ? text.friends : t(key);
+  const noticeCount =
+    (state?.incoming.length || 0) + (state?.invitations.length || 0);
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -57,13 +67,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <Link
               key={href}
               href={href}
-              aria-label={t(key)}
-              className={`nav-link ${path === href ? "active" : ""}`}
-              aria-current={path === href ? "page" : undefined}
+              aria-label={label(key)}
+              className={`nav-link ${activePath === href ? "active" : ""}`}
+              aria-current={activePath === href ? "page" : undefined}
             >
               <Icon size={20} />
-              <span>{t(key)}</span>
-              {path === href && <span className="nav-active-dot" />}
+              <span>{label(key)}</span>
+              {key === "friends" && noticeCount > 0 && (
+                <span className="tag">{noticeCount}</span>
+              )}
+              {activePath === href && <span className="nav-active-dot" />}
             </Link>
           ))}
         </nav>
@@ -73,13 +86,18 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <p>{t("localOnly")}</p>
             <span>{t("noRating")}</span>
           </div>
-          <Link href="/profile" className="guest-link">
+          <Link
+            href={state?.me ? "/friends" : "/profile"}
+            className="guest-link"
+          >
             <span className="avatar">
               {["♞", "♜", "♝", "♛"][data.profile.avatar]}
             </span>
             <span>
-              <strong>{data.profile.name || t("guest")}</strong>
-              <small>{t("device")}</small>
+              <strong>
+                {state?.me?.username || data.profile.name || t("guest")}
+              </strong>
+              <small>{state?.me ? text.connected : t("device")}</small>
             </span>
             <ArrowUpRight size={16} />
           </Link>
@@ -92,7 +110,10 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <strong>shatranj.</strong>
           </div>
           <div className="breadcrumb">
-            {t(navigation.find((item) => item.href === path)?.key || "home")}
+            {label(
+              navigation.find((item) => item.href === activePath)?.key ||
+                "home",
+            )}
             <span>/</span>
             <span>Shatranj</span>
           </div>
@@ -129,6 +150,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
         <main>
+          <OnlineNotice />
           {storageError && (
             <div role="alert" className="storage-alert">
               {t("storageError")}
@@ -158,11 +180,11 @@ export function Shell({ children }: { children: React.ReactNode }) {
           <Link
             key={href}
             href={href}
-            className={path === href ? "active" : ""}
-            aria-current={path === href ? "page" : undefined}
+            className={activePath === href ? "active" : ""}
+            aria-current={activePath === href ? "page" : undefined}
           >
             <Icon size={20} />
-            <span>{t(key)}</span>
+            <span>{label(key)}</span>
           </Link>
         ))}
       </nav>
