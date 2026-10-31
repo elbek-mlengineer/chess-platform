@@ -134,11 +134,11 @@ describe("game lifecycle", () => {
     const worker = MockWorker.instances.at(-1)!;
     const count = MockWorker.instances.length;
     act(() => result.current.game.move("g1", "f3", "q"));
-    expect(result.current.game.session?.premove?.to).toBe("f3");
+    expect(result.current.game.session?.premoves?.[0]?.to).toBe("f3");
     expect(MockWorker.instances).toHaveLength(count);
     expect(worker.terminate).not.toHaveBeenCalled();
     act(() => result.current.game.cancelPremove());
-    expect(result.current.game.session?.premove).toBeNull();
+    expect(result.current.game.session?.premoves).toEqual([]);
     expect(worker.terminate).not.toHaveBeenCalled();
     act(() => result.current.game.move("g1", "f3", "q"));
     const game = result.current.game.session!;
@@ -150,6 +150,6 @@ describe("game lifecycle", () => {
       ),
     );
     expect(result.current.game.session?.moves).toEqual(["e4", "Nc6", "Nf3"]);
-    expect(result.current.game.session?.premove).toBeNull();
+    expect(result.current.game.session?.premoves).toEqual([]);
   });
 });

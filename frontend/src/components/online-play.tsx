@@ -8,7 +8,6 @@ import {
   Flag,
   Handshake,
   Swords,
-  X,
 } from "lucide-react";
 import type { Color } from "chess.js";
 import { position, resultLabel } from "@/lib/chess";
@@ -16,6 +15,7 @@ import { clockAt, clockText } from "@/lib/clock";
 import type { OnlineGame } from "@/lib/online";
 import { Board } from "./board";
 import { MoveHistory } from "./move-history";
+import { PremovePanel } from "./premove-panel";
 import { ConfirmDialog } from "./dialog";
 import { useApp } from "./provider";
 import { useOnline } from "./online-provider";
@@ -111,7 +111,7 @@ function GameBoard({ game, ownColor }: { game: OnlineGame; ownColor: Color }) {
           allowPremoves
           disabled={busy || !connected || !!game.result}
           lastMove={last}
-          premove={game.premove}
+          premoves={game.premoves}
           onMove={(from, to, promotion) =>
             void act({
               action: "move",
@@ -123,7 +123,7 @@ function GameBoard({ game, ownColor }: { game: OnlineGame; ownColor: Color }) {
             })
           }
           onCancelPremove={() => {
-            if (game.premove)
+            if (game.premoves.length)
               void act({ action: "cancel-premove", gameId: game.id });
           }}
         />
@@ -151,27 +151,13 @@ function GameBoard({ game, ownColor }: { game: OnlineGame; ownColor: Color }) {
           </button>
         </div>
         {!game.result && (
-          <div className="premove-panel">
-            {game.premove ? (
-              <>
-                <strong>
-                  {t("premoveQueued")} · {game.premove.from} → {game.premove.to}
-                </strong>
-                <button
-                  className="icon-button"
-                  disabled={busy}
-                  aria-label={t("cancelPremove")}
-                  onClick={() =>
-                    void act({ action: "cancel-premove", gameId: game.id })
-                  }
-                >
-                  <X size={17} />
-                </button>
-              </>
-            ) : (
-              <p>{t("premoveHelp")}</p>
-            )}
-          </div>
+          <PremovePanel
+            queue={game.premoves}
+            disabled={busy}
+            onCancel={() =>
+              void act({ action: "cancel-premove", gameId: game.id })
+            }
+          />
         )}
         {game.result && (
           <label className="online-review">

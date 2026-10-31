@@ -1,7 +1,7 @@
 import type { GameSession } from "./chess";
 import { position, timeControls } from "./chess";
 import type { Locale } from "./i18n";
-import { SQUARES } from "chess.js";
+import { isPremove, maxPremoves } from "./premove";
 export interface Preferences {
   locale: Locale;
   theme: "light" | "dark" | "system";
@@ -47,16 +47,13 @@ function isColor(value: unknown): value is "w" | "b" {
 }
 export function validSession(value: unknown): value is GameSession {
   if (!isObject(value)) return false;
-  if (value.premove !== undefined && value.premove !== null) {
-    const queued = value.premove;
-    if (
-      !isObject(queued) ||
-      !isColor(queued.color) ||
-      !SQUARES.some((square) => square === queued.from) ||
-      !SQUARES.some((square) => square === queued.to) ||
-      !["q", "r", "b", "n"].includes(String(queued.promotion))
-    )
+  if (value.premoves !== undefined) {
+    if (!Array.isArray(value.premoves) || value.premoves.length > maxPremoves)
       return false;
+    if (!value.premoves.every(isPremove)) return false;
+  }
+  if (value.premove !== undefined && value.premove !== null) {
+    if (!isPremove(value.premove)) return false;
   }
   const {
     id,
@@ -195,7 +192,8 @@ export function loadLocal(): {
   try {
     data = parseData(localStorage.getItem(dataKey));
     if (data.active) {
-      data.active.premove = null;
+      data.active.premoves = [];
+      Reflect.deleteProperty(data.active, "premove");
       if (!data.active.result) data.active.paused = true;
     }
   } catch {

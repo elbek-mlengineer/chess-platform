@@ -1,98 +1,54 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Shatranj backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+The NestJS backend owns every online account, session, friendship, invitation and game. It runs independently from the Next.js UI; `/api/online` is implemented here, not in frontend route handlers.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Run and configuration
 
-## Description
+Install dependencies from the repository root with `npm ci`, then `npm run dev` to start both applications. To start this application alone, build shared code with `npm run build:shared`, then run `npm run start:dev --workspace backend`. Production uses `npm run build` from root and `npm run start:prod --workspace backend`.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Copy `.env.example` to `backend/.env` if defaults need changing. Bootstrap loads that file without overriding already-set process variables.
 
-## Project setup
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `PORT` | `4000` | Backend listener; set in backend/.env when starting both apps together. |
+| `HOST` | `127.0.0.1` | Backend binds locally behind the frontend proxy. |
+| `FRONTEND_ORIGINS` | localhost/127.0.0.1 on ports 3000 and 3001 | Comma-separated exact browser origins permitted for cookie-authenticated writes and CORS. |
+| `SHATRANJ_DATABASE_PATH` | backend/.data/online.sqlite | Custom persistent SQLite file; an explicit path disables implicit legacy migration. |
 
-```bash
-$ npm install
-```
+`SHATRANJ_PUBLIC_ORIGIN` remains a compatibility fallback for `FRONTEND_ORIGINS`. For HTTPS deployment, configure the actual browser-facing origin. The frontend uses its own `BACKEND_URL` to locate this service. Requests keep a relative `/api/online` URL in the browser, so cookie authentication works through the proxy without exposing an internal backend URL.
 
-## Compile and run the project
+For LAN use, include `http://YOUR-LAN-IP:3001` in `FRONTEND_ORIGINS`, start Nest, and run `npm run dev --workspace frontend -- --hostname 0.0.0.0 --port 3001`. Open that same LAN URL on both devices. This setup does not change firewall/router rules or publish the application.
 
-```bash
-# development
-$ npm run start
+## Boundaries
 
-# watch mode
-$ npm run start:dev
+- `src/config/`: validated startup configuration and common HTTP setup.
+- `src/database/`: schema, SQL boundary checks, write transactions, connection lifecycle and one-time legacy migration.
+- `src/auth/`: salted scrypt password derivation, hashed random session tokens, presence, session expiry/revocation and durable rate buckets.
+- `src/online/online.controller.ts`: HTTP input, origin checks and cookies. Runtime action validation lives in `online-input.ts`.
+- `src/online/online-application.service.ts`: authentication and request orchestration; no presentation or HTTP response objects.
+- `src/online/online-service.ts`: friendship/invitation transitions and state views, independently testable with SQLite.
+- `src/online/online-games.ts`: authoritative move ownership, expected ply, actual legality, clock expiry, results and private premove queues.
+- `src/common/api-exception.filter.ts`: stable `{ error: code }` responses without leaking unexpected errors.
+- `../shared/`: transport types and portable rules. The server always revalidates a client's requested move using its own persisted history.
 
-# production mode
-$ npm run start:prod
-```
+## API
 
-## Run tests
+- `GET /api/health` returns `{ "status": "ok" }` after database initialization.
+- `GET /api/online?q=username` returns the current user's private state and bounded username search results.
+- `POST /api/online` accepts the discriminated `OnlineAction` contract from `@shatranj/shared`. Registration/login/logout, friend requests, invitations, moves, cancellation, resignation and draw offers preserve the existing client contract.
 
-```bash
-# unit tests
-$ npm run test
+POST requires a configured exact Origin and JSON content type. Body size is limited to 4 KiB; malformed/oversized JSON receives a stable 400/413 error. Cookies are HttpOnly, SameSite=Lax, Secure on HTTPS, expire after 30 days and are revoked on logout. Passwords and raw session tokens are never exposed in state responses. Reads and errors are no-store. Global/per-username authentication limits and per-account write limits remain in SQLite. Configure ingress connection limits at the deployment host.
 
-# e2e tests
-$ npm run test:e2e
+## Storage and migration
 
-# test coverage
-$ npm run test:cov
-```
+`DatabaseService` opens the database during module initialization and closes it during application shutdown. Default paths are based on the backend directory, not the caller's working directory. WAL, foreign keys, busy timeout, bound SQL parameters, pair uniqueness constraints and explicit write transactions remain enabled.
 
-## Deployment
+If the default backend database does not exist but the former default frontend database does, startup uses Node's SQLite backup API to capture a consistent snapshot including committed WAL content. It publishes the complete snapshot without overwriting an existing target and retains the original. Accounts, session hashes, game IDs, clock snapshots and SAN histories are preserved. Never copy a live `.sqlite` file alone. Stop legacy servers for the first cutover; keep the legacy copy until satisfied with the migration. Existing backend data always wins on subsequent starts. Custom database paths are used exactly as configured and are not implicitly copied.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Deploy on one persistent host. Ephemeral/serverless disks and separate hosts with independent SQLite files are unsupported. Use SQLite backup facilities for backups. Built-in SQLite is marked experimental on Node 22; this implementation requires Node 22.18+ or 24 LTS.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Online games are casual/unrated: clocks continue offline, chess.js adjudicates automatic draw conditions, and mating-possibility timeout edge cases are simplified. Both participants automatically open the accepted game through the frontend observer; five private premoves are validated and consumed in order. Password recovery, email verification, account deletion, ranking, chat and public matchmaking are not implemented.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+## Verification
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+From root, `npm test` includes backend domain tests, migration tests with an open WAL source and real Nest HTTP tests with isolated sessions, plus frontend tests. `npm run typecheck`, `npm run lint` and `npm run build` cover both applications and shared code. HTTP tests reuse production HTTP configuration and isolated memory databases, never the user's database.

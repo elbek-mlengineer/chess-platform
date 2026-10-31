@@ -2,7 +2,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it, vi } from "vitest";
 import RootLayout from "./layout";
 
-vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
+  useRouter: () => ({ push: vi.fn() }),
+}));
 
 it("opts out of Dark Reader in the server document before the application is parsed", () => {
   const html = renderToStaticMarkup(

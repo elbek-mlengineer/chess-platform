@@ -8,7 +8,11 @@ import {
   type PieceSymbol,
 } from "chess.js";
 import type { Premove } from "@/lib/chess";
-import { premoveDestinations } from "@/lib/premove";
+import {
+  maxPremoves,
+  premoveDestinations,
+  projectPremoves,
+} from "@/lib/premove";
 import { useApp } from "./provider";
 import { Dialog } from "./dialog";
 import { Piece, pieceNames } from "./piece";
@@ -16,13 +20,18 @@ export { Piece } from "./piece";
 interface BoardProps {
   chess: Chess;
   orientation?: Color;
-  onMove?: (from: Square, to: Square, promotion: string) => void;
+  onMove?: (
+    from: Square,
+    to: Square,
+    promotion: string,
+    planning?: boolean,
+  ) => void;
   disabled?: boolean;
   lastMove?: { from: Square; to: Square };
   small?: boolean;
   allowPremoves?: boolean;
   playerColor?: Color;
-  premove?: Premove | null;
+  premoves?: readonly Premove[];
   onCancelPremove?: () => void;
 }
 export function Board({
@@ -34,7 +43,7 @@ export function Board({
   small = false,
   allowPremoves = false,
   playerColor,
-  premove,
+  premoves = [],
   onCancelPremove,
 }: BoardProps) {
   const { t, preferences } = useApp();
@@ -47,10 +56,16 @@ export function Board({
     from: Square;
     to: Square;
     color: Color;
+    planning: boolean;
   } | null>(null);
   const [focus, setFocus] = useState(56);
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
-  const selectedPiece = selection ? chess.get(selection.square) : undefined;
+  const fen = chess.fen();
+  const preview = useMemo(
+    () => projectPremoves(new Chess(fen), premoves),
+    [fen, premoves],
+  );
+  const selectedPiece = selection ? preview.get(selection.square) : undefined;
   const selected =
     !disabled &&
     selection &&
@@ -60,13 +75,13 @@ export function Board({
       : null;
   const selectedColor = selection?.color;
   const isPlanning = !!selected && selectedColor !== chess.turn();
-  const fen = chess.fen();
+  const previewFen = preview.fen();
   const plannedDestinations = useMemo(
     () =>
       isPlanning && selected && selectedColor
-        ? premoveDestinations(new Chess(fen), selected, selectedColor)
+        ? premoveDestinations(new Chess(previewFen), selected, selectedColor)
         : [],
-    [fen, selected, selectedColor, isPlanning],
+    [previewFen, selected, selectedColor, isPlanning],
   );
   const squares = orientation === "w" ? SQUARES : [...SQUARES].reverse();
   const legal =
@@ -74,18 +89,19 @@ export function Board({
       ? chess.moves({ square: selected, verbose: true })
       : [];
   function attempt(from: Square, to: Square) {
-    const piece = chess.get(from);
+    const piece = preview.get(from);
     if (!piece || (playerColor && piece.color !== playerColor)) return false;
     const planning = piece.color !== chess.turn();
     if (planning) {
       if (
         !allowPremoves ||
-        !premoveDestinations(chess, from, piece.color).includes(to)
+        premoves.length >= maxPremoves ||
+        !premoveDestinations(preview, from, piece.color).includes(to)
       )
         return false;
       if (piece.type === "p" && (to[1] === "1" || to[1] === "8"))
-        setPromotion({ from, to, color: piece.color });
-      else onMove?.(from, to, "q");
+        setPromotion({ from, to, color: piece.color, planning: true });
+      else onMove?.(from, to, "q", true);
       setSelection(null);
       return true;
     }
@@ -94,7 +110,7 @@ export function Board({
       .filter((m) => m.to === to);
     if (!candidates.length) return false;
     if (candidates.some((m) => m.promotion))
-      setPromotion({ from, to, color: piece.color });
+      setPromotion({ from, to, color: piece.color, planning: false });
     else onMove?.(from, to, "q");
     setSelection(null);
     return true;
@@ -107,7 +123,7 @@ export function Board({
       return;
     }
     if (selected && attempt(selected, square)) return;
-    const piece = chess.get(square);
+    const piece = preview.get(square);
     if (
       !piece ||
       (playerColor && piece.color !== playerColor) ||
@@ -116,7 +132,6 @@ export function Board({
       setSelection(null);
       return;
     }
-    if (premove?.color === piece.color) onCancelPremove?.();
     setSelection({ square, color: piece.color, type: piece.type });
   }
   function key(event: KeyboardEvent, index: number) {
@@ -154,12 +169,16 @@ export function Board({
         }}
       >
         {squares.map((square, index) => {
-          const piece = chess.get(square);
+          const piece = preview.get(square);
           const isLegal = legal.some((move) => move.to === square);
           const isPlannedDestination = plannedDestinations.includes(square);
-          const isQueuedFrom = premove?.from === square;
-          const isQueuedTo = premove?.to === square;
+          const isQueuedFrom = premoves.some((move) => move.from === square);
+          const queueSteps = premoves.flatMap((move, step) =>
+            move.to === square ? [step + 1] : [],
+          );
+          const isQueuedTo = queueSteps.length > 0;
           const isCheck =
+            !premoves.length &&
             chess.isCheck() &&
             piece?.type === "k" &&
             piece.color === chess.turn();
@@ -172,7 +191,7 @@ export function Board({
               }}
               type="button"
               tabIndex={small ? -1 : index === focus ? 0 : -1}
-              className={`square ${dark ? "square-dark" : "square-light"} ${selected === square ? "selected" : ""} ${selected === square && isPlanning ? "premove-selected" : ""} ${isQueuedFrom || isQueuedTo ? "premove-square" : ""} ${lastMove && (lastMove.from === square || lastMove.to === square) ? "last-move" : ""} ${isCheck ? "in-check" : ""}`}
+              className={`square ${dark ? "square-dark" : "square-light"} ${selected === square ? "selected" : ""} ${selected === square && isPlanning ? "premove-selected" : ""} ${isQueuedTo ? "premove-square" : ""} ${lastMove && (lastMove.from === square || lastMove.to === square) ? "last-move" : ""} ${isCheck ? "in-check" : ""}`}
               aria-label={`${square}, ${piece ? `${t(piece.color === "w" ? "white" : "black")} ${t(pieceNames[piece.type])}` : t("empty")}${selected === square ? `, ${t("selected")}` : ""}${isLegal ? `, ${t("legal")}` : ""}${isPlannedDestination ? `, ${t("premoveTarget")}` : ""}${isQueuedFrom ? `, ${t("premoveFrom")}` : ""}${isQueuedTo ? `, ${t("premoveTo")}` : ""}${isCheck ? `, ${t("check")}` : ""}`}
               aria-pressed={selected === square}
               onFocus={() => setFocus(index)}
@@ -187,8 +206,6 @@ export function Board({
               }
               onDragStart={(e) => {
                 e.dataTransfer.setData("text/plain", square);
-                if (piece && premove?.color === piece.color)
-                  onCancelPremove?.();
                 if (piece)
                   setSelection({
                     square,
@@ -214,7 +231,7 @@ export function Board({
               )}
               {isQueuedTo && (
                 <span className="premove-marker" aria-hidden="true">
-                  ↝
+                  {queueSteps.join(",")}
                 </span>
               )}
               {isCheck && <span className="check-mark">!</span>}
@@ -242,7 +259,9 @@ export function Board({
                 key={type}
                 aria-label={t(pieceNames[type])}
                 onClick={() => {
-                  onMove?.(promotion.from, promotion.to, type);
+                  if (promotion.planning)
+                    onMove?.(promotion.from, promotion.to, type, true);
+                  else onMove?.(promotion.from, promotion.to, type);
                   setPromotion(null);
                 }}
               >

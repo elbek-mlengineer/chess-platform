@@ -79,9 +79,11 @@ export function OnlineProvider({ children }: { children: React.ReactNode }) {
           server: body.state.serverNow,
           received: performance.now(),
         };
-        pollDelay.current = body.state.games.some((game) => !game.result)
-          ? 400
-          : 1500;
+        pollDelay.current =
+          body.state.games.some((game) => !game.result) ||
+          body.state.sentInvitations.length > 0
+            ? 400
+            : 1500;
         setState(body.state);
         setResultQuery(requestedQuery);
         // A successful heartbeat must not erase a failed action before the user can read it.

@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Search, Users, Swords, UserPlus, X, ShieldBan } from "lucide-react";
 import type { OnlineAction, OnlineUser } from "@/lib/online";
@@ -85,7 +84,6 @@ function InviteDialog({
 export function Friends() {
   const { state, text, search, searching, setSearch, act, busy, loading } =
     useOnline();
-  const router = useRouter();
   const { t } = useApp();
   const [invite, setInvite] = useState<OnlineUser | null>(null);
   const [confirm, setConfirm] = useState<{
@@ -94,9 +92,7 @@ export function Friends() {
   } | null>(null);
   const active = state?.games.find((game) => !game.result);
   function send(action: OnlineAction) {
-    void act(action).then((success) => {
-      if (success && action.action === "accept-invite") router.push("/online");
-    });
+    void act(action);
   }
   const pendingInvites = new Set(
     state?.sentInvitations.map((item) => item.user.id),

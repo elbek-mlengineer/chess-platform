@@ -8,12 +8,13 @@ import {
 } from "./chess";
 import { clockAt, switchClock } from "./clock";
 import { engineResponseIsCurrent } from "./engine";
-import { premoveDestinations } from "./premove";
+import { canAppendPremove, projectPremoves } from "./premove";
 export interface MoveInput {
   from: Square;
   to: Square;
   promotion: string;
   engine?: boolean;
+  planning?: boolean;
   expected?: { id: string; fen: string };
 }
 export function finishGame(
@@ -30,7 +31,7 @@ export function finishGame(
     },
     result,
     paused: false,
-    premove: null,
+    premoves: [],
   };
 }
 function timeoutResult(game: GameSession, now: number): GameSession | null {
@@ -73,7 +74,14 @@ export function playOrQueueMove(
     !engineResponseIsCurrent(input.expected, { id: game.id, fen: chess.fen() })
   )
     return game;
-  const piece = chess.get(input.from);
+  const queue = game.premoves || [];
+  const preview = projectPremoves(chess, queue);
+  // The opponent still moves on the authoritative board; the waiting player selects from the preview.
+  const actualPiece = chess.get(input.from);
+  const piece =
+    !input.planning && actualPiece?.color === chess.turn()
+      ? actualPiece
+      : preview.get(input.from);
   if (!piece) return game;
   if (game.mode === "computer") {
     if (input.engine && chess.turn() === game.human) return game;
@@ -84,26 +92,30 @@ export function playOrQueueMove(
   if (piece.color !== chess.turn()) {
     if (
       input.engine ||
-      !["q", "r", "b", "n"].includes(input.promotion) ||
-      !premoveDestinations(chess, input.from, piece.color).includes(input.to)
+      !canAppendPremove(chess, queue, { ...input, color: piece.color })
     )
       return game;
     return {
       ...game,
-      premove: {
-        from: input.from,
-        to: input.to,
-        promotion: input.promotion,
-        color: piece.color,
-      },
+      premoves: [
+        ...queue,
+        {
+          from: input.from,
+          to: input.to,
+          promotion: input.promotion,
+          color: piece.color,
+        },
+      ],
     };
   }
   const next = applyLegalMove(game, input, now);
   if (next === game || next.result) return next;
-  const queued = game.premove;
+  const [queued, ...rest] = queue;
   if (!queued) return next;
   // Consume exactly once, including when a capture/check makes the plan illegal.
-  const withoutPremove = { ...next, premove: null };
+  const withoutPremove = { ...next, premoves: [] };
   if (position(next.moves).turn() !== queued.color) return withoutPremove;
-  return applyLegalMove(withoutPremove, queued, now);
+  const reply = applyLegalMove(withoutPremove, queued, now);
+  if (reply === withoutPremove || reply.result) return reply;
+  return { ...reply, premoves: rest };
 }

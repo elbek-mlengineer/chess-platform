@@ -2,6 +2,10 @@
 /dist
 /node_modules
 /build
+/.data/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
 
 # Logs
 logs

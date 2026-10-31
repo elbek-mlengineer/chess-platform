@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AppProvider } from "@/components/provider";
 import { Shell } from "@/components/shell";
 import { OnlineProvider } from "@/components/online-provider";
+import { OnlineGameNavigation } from "@/components/online-game-navigation";
 import "./globals.css";
 export const metadata: Metadata = {
   title: "Shatranj — Every move matters",
@@ -25,6 +26,7 @@ export default function RootLayout({
       <body>
         <AppProvider>
           <OnlineProvider>
+            <OnlineGameNavigation />
             <Shell>{children}</Shell>
           </OnlineProvider>
         </AppProvider>

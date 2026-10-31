@@ -76,6 +76,7 @@ const en = {
   accountNote:
     "Keep your password safe. Password recovery is not available yet.",
   errors: {
+    premoveLimit: "You can queue up to 5 premoves.",
     invalidUsername: "Use 3–24 letters, numbers or underscores.",
     invalidPassword: "Password must contain 8–128 characters.",
     usernameTaken: "That username is already taken.",
@@ -205,6 +206,7 @@ const uz: OnlineDictionary = {
     signInRequired: "Hisobga qayta kiring.",
     invalidInput: "Ma’lumotlarni tekshirib, qayta urinib ko‘ring.",
     invalidMove: "Bu yurish endi qonuniy emas.",
+    premoveLimit: "Ko‘pi bilan 5 ta yurishni oldindan belgilash mumkin.",
     gameFinished: "O‘yin allaqachon tugagan.",
     stalePosition:
       "Vaziyat o‘zgardi. Yangilangan taxtani tekshirib, qayta yuring.",
@@ -309,6 +311,7 @@ const ru: OnlineDictionary = {
     signInRequired: "Войдите снова.",
     invalidInput: "Проверьте данные и повторите.",
     invalidMove: "Этот ход больше не разрешён.",
+    premoveLimit: "Можно запланировать не больше 5 предходов.",
     gameFinished: "Партия уже завершена.",
     stalePosition: "Позиция изменилась. Проверьте доску и повторите ход.",
     gameNotFound: "Партия не найдена.",

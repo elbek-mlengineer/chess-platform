@@ -1,11 +1,13 @@
 export const en = {
   premoveHelp:
-    "On your opponent’s turn, select your piece, then a destination to queue one premove. You can also select just a piece and choose its destination after the reply. Illegal plans are discarded. Escape or right-click cancels.",
+    "Queue up to 5 moves on your opponent’s turn. Pieces preview their planned positions on red squares; select them there to continue the sequence. Each reply is checked before execution. An illegal move clears the remaining plan. Escape or right-click cancels all.",
+  premoveLimit:
+    "5 moves queued. Cancel the plan to change it, or wait for a move to execute.",
   premoveQueued: "Premove queued",
   premoveTarget: "premove destination",
   premoveFrom: "premove source",
   premoveTo: "queued destination",
-  cancelPremove: "Cancel premove",
+  cancelPremove: "Cancel all premoves",
   home: "Overview",
   play: "Play chess",
   puzzles: "Puzzles",
@@ -197,12 +199,14 @@ export type Locale = "uz" | "en" | "ru";
 type Dictionary = Record<TextKey, string>;
 const uz: Dictionary = {
   premoveHelp:
-    "Raqib navbatida donangizni, keyin manzilini bosing — bitta oldindan yurish belgilanadi. Faqat donani tanlab, manzilini keyin ham bosishingiz mumkin. Noqonuniy reja bekor qilinadi. Escape yoki o‘ng tugma bilan bekor qiling.",
+    "Raqib navbatida 5 tagacha yurishni oldindan belgilang. Donalar rejalangan joyda qizil katakda ko‘rinadi; keyingi yurish uchun donani o‘sha joyidan tanlang. Har bir yurish bajarilishdan oldin tekshiriladi. Noqonuniy yurish qolgan rejani bekor qiladi. Escape yoki o‘ng tugma barcha rejani bekor qiladi.",
+  premoveLimit:
+    "5 ta yurish belgilandi. O‘zgartirish uchun rejani bekor qiling yoki navbatdagi yurish bajarilishini kuting.",
   premoveQueued: "Oldindan yurish belgilandi",
   premoveTarget: "oldindan yurish manzili",
   premoveFrom: "oldindan tanlangan dona",
   premoveTo: "belgilangan manzil",
-  cancelPremove: "Oldindan yurishni bekor qilish",
+  cancelPremove: "Barcha oldindan yurishlarni bekor qilish",
   home: "Bosh sahifa",
   play: "Shaxmat o‘ynash",
   puzzles: "Masalalar",
@@ -393,12 +397,14 @@ const uz: Dictionary = {
 };
 const ru: Dictionary = {
   premoveHelp:
-    "Во время хода соперника выберите свою фигуру и поле для одного предхода. Можно выбрать только фигуру, а поле — после ответа. Недопустимый предход отменяется. Escape или правая кнопка мыши отменяет выбор.",
+    "Во время хода соперника запланируйте до 5 ходов. Фигуры показаны на красных полях будущих позиций; выбирайте их там для продолжения цепочки. Каждый ход проверяется при исполнении. Недопустимый ход отменяет остаток плана. Escape или правая кнопка отменяет всё.",
+  premoveLimit:
+    "Запланировано 5 ходов. Отмените план для изменения или дождитесь исполнения следующего хода.",
   premoveQueued: "Предход запланирован",
   premoveTarget: "поле для предхода",
   premoveFrom: "фигура для предхода",
   premoveTo: "запланированное поле",
-  cancelPremove: "Отменить предход",
+  cancelPremove: "Отменить все предходы",
   home: "Обзор",
   play: "Играть",
   puzzles: "Задачи",

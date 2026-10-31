@@ -87,7 +87,7 @@ describe("accessible chessboard", () => {
     });
     fireEvent.click(screen.getByLabelText("g1, White Knight"));
     fireEvent.click(screen.getByLabelText("f3, empty, premove destination"));
-    expect(onMove).toHaveBeenCalledExactlyOnceWith("g1", "f3", "q");
+    expect(onMove).toHaveBeenCalledExactlyOnceWith("g1", "f3", "q", true);
   });
   it("retains a preselected piece across the opponent reply", () => {
     const onMove = vi.fn();
@@ -119,16 +119,15 @@ describe("accessible chessboard", () => {
     renderBoard(position(["e4"]), vi.fn(), {
       allowPremoves: true,
       playerColor: "w",
-      premove: { from: "g1", to: "f3", promotion: "q", color: "w" },
+      premoves: [{ from: "g1", to: "f3", promotion: "q", color: "w" }],
       onCancelPremove: cancel,
     });
-    fireEvent.keyDown(
-      screen.getByLabelText("g1, White Knight, premove source"),
-      { key: "Escape" },
-    );
+    fireEvent.keyDown(screen.getByLabelText("g1, empty, premove source"), {
+      key: "Escape",
+    });
     expect(cancel).toHaveBeenCalledTimes(1);
     fireEvent.contextMenu(
-      screen.getByLabelText("f3, empty, queued destination"),
+      screen.getByLabelText("f3, White Knight, queued destination"),
     );
     expect(cancel).toHaveBeenCalledTimes(2);
   });
@@ -140,5 +139,71 @@ describe("accessible chessboard", () => {
     const pawn = screen.getByLabelText("e7, Black Pawn");
     fireEvent.click(pawn);
     expect(pawn).toHaveAttribute("aria-pressed", "false");
+  });
+  it("shows the queued piece on its red destination and appends from that projected square", () => {
+    const chess = position(["e4"]);
+    const onMove = vi.fn();
+    const cancel = vi.fn();
+    renderBoard(chess, onMove, {
+      allowPremoves: true,
+      playerColor: "w",
+      premoves: [{ from: "g1", to: "f3", color: "w", promotion: "q" }],
+      onCancelPremove: cancel,
+    });
+    const projected = screen.getByLabelText(
+      "f3, White Knight, queued destination",
+    );
+    expect(projected).toHaveClass("premove-square");
+    expect(screen.getByLabelText("g1, empty, premove source")).not.toHaveClass(
+      "premove-square",
+    );
+    expect(chess.get("g1")?.type).toBe("n");
+    expect(chess.get("f3")).toBeUndefined();
+    fireEvent.click(projected);
+    fireEvent.click(screen.getByLabelText("h4, empty, premove destination"));
+    expect(onMove).toHaveBeenCalledExactlyOnceWith("f3", "h4", "q", true);
+    expect(cancel).not.toHaveBeenCalled();
+  });
+  it("previews a five-move sequence and prevents a sixth move", () => {
+    const onMove = vi.fn();
+    renderBoard(position(["e4"]), onMove, {
+      allowPremoves: true,
+      playerColor: "w",
+      premoves: [
+        { from: "g1", to: "f3", color: "w", promotion: "q" },
+        { from: "f3", to: "g5", color: "w", promotion: "q" },
+        { from: "g5", to: "h3", color: "w", promotion: "q" },
+        { from: "h3", to: "f4", color: "w", promotion: "q" },
+        { from: "f4", to: "d5", color: "w", promotion: "q" },
+      ],
+    });
+    fireEvent.click(
+      screen.getByLabelText("d5, White Knight, queued destination"),
+    );
+    fireEvent.click(screen.getByLabelText("f6, empty, premove destination"));
+    expect(onMove).not.toHaveBeenCalled();
+  });
+  it("restores the real position when the complete preview queue is cancelled", () => {
+    const chess = position(["e4"]);
+    const view = renderBoard(chess, vi.fn(), {
+      allowPremoves: true,
+      playerColor: "w",
+      premoves: [{ from: "g1", to: "f3", color: "w", promotion: "q" }],
+    });
+    view.rerender(
+      <AppProvider>
+        <Board
+          chess={chess}
+          allowPremoves
+          playerColor="w"
+          premoves={[]}
+          onMove={vi.fn()}
+        />
+      </AppProvider>,
+    );
+    expect(screen.getByLabelText("g1, White Knight")).toBeInTheDocument();
+    expect(screen.getByLabelText("f3, empty")).not.toHaveClass(
+      "premove-square",
+    );
   });
 });

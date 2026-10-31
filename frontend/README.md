@@ -1,26 +1,19 @@
 # Shatranj
 
-A chess application built on Next.js App Router, React, and strict TypeScript. Local practice works without an account. Online accounts, friends and games use the Next.js server and a private SQLite database. The existing Nest starter is not required. No API key is needed.
+A chess application built on Next.js App Router, React, and strict TypeScript. Local practice works without an account. Online accounts, friends and games use the independent NestJS application in `../backend/`. Next.js serves the UI and forwards API requests; it does not own credentials or the database. No API key is needed.
 
 ## Run
 
-Use Node.js 24 LTS (recommended), or Node.js 22.13+ within the 22.x release line.
+Use Node.js 22.18+ on the 22.x line, or Node.js 24 LTS. Install from the **repository root** and start both processes:
 
 ```sh
-cd frontend
 npm ci
 npm run dev
 ```
 
-Open http://localhost:3000. For a production server, run `npm run build`, then `npm start`.
+Next.js normally serves http://localhost:3000 and proxies `/api/*` to the backend on http://127.0.0.1:4000. For a different internal API address set `BACKEND_URL` in a frontend environment file before building. After `npm run build:shared` from root, `npm run dev --workspace frontend` starts only the UI; online features also require NestJS running. Local practice does not require a backend connection.
 
-```sh
-npm run typecheck
-npm run lint
-npm test
-npm run build
-npm run format
-```
+Root commands `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build` cover all workspaces. Production: `npm run build`, then `npm start` from root. See [backend setup](../backend/README.md) and [root workflow](../README.md).
 
 ## Features
 
@@ -36,8 +29,8 @@ npm run format
 
 ## Module boundaries
 
-- `src/lib/chess.ts`: rules adapter, session model, results, and PGN.
-- `src/lib/clock.ts`: pure timestamp calculations, increment, and formatting.
+- `src/lib/chess.ts`: frontend result labels and browser PGN export; re-exports common rules and types from `@shatranj/shared`.
+- `src/lib/clock.ts`, `premove.ts`, `online.ts`: compatibility import surfaces for the shared portable package, with no server implementation.
 - `src/hooks/use-game.ts`: authoritative session transaction and lifecycle. The SAN list reconstructs the board and repetition history; no independent board state is persisted.
 - `src/lib/engine.ts`, `engine.worker.ts`, `src/hooks/use-computer.ts`: bounded search, worker transport, cancellation, and identity checks. Computer moves are checked again inside the state transaction, so stale responses cannot change a replacement game.
 - `src/hooks/use-move-sound.ts`: optional Web Audio, unlocked by user gestures.
@@ -47,11 +40,11 @@ npm run format
 
 ## Premoves and preselection
 
-During the opponent's turn, select your piece and a destination to queue one premove. Select just a piece to retain that selection across the opponent's reply and choose its destination later. Queued squares are blue; use the cancel button, Escape, or right-click to cancel. Selecting another piece of the same color replaces the existing plan. Computer games only accept input for the human color; local games allow either waiting side to plan a move.
+During the opponent's turn, queue up to **five premoves**. The preview moves your pieces to their planned positions on red destination squares, with numbered steps. Select the piece at its projected square to continue a sequence with the same piece, or select another own piece to append a different move. Select just a piece to retain that selection across the opponent's reply and choose its destination later. The cancel button, Escape or right-click clears the entire queue and restores the real position. At five plans, the panel explains the limit; further plans do not replace existing ones. Computer games accept only human-color input; local games also allow the waiting player to plan.
 
 Planning hints are speculative: opposing blockers are removed in a separate chess.js planning position, and pawn capture targets may be anticipated. The real board and clocks do not change while queuing. After the opponent's move, the queued reply is validated against the actual position by chess.js, consumed once, and executed only if legal. Both moves are committed atomically. The premove uses the same timestamp as the opponent's completed move (zero additional elapsed time in this local demo), and its increment is applied normally. Castling, en passant, and chosen promotions still require actual legality.
 
-A captured piece, new check, or illegal target discards the plan. Completion, timeout, leaving Play, replacement, and reload recovery clear pending intent. Queue changes do not restart a computer search. Multiple queued moves are not supported.
+A captured piece, new check, or illegal target cancels the invalid head and its dependent tail. After a legal planned reply, the remaining queue waits for the next opponent move. Completion, timeout, leaving local Play, replacement and local reload recovery clear pending intent. Queue changes do not restart a computer search. `../shared/src/premove.ts` owns the shared limit, preview projection, runtime guard and append validation; projections never change actual history or clocks. Castling previews move both king and rook; promotion previews use the selected piece.
 
 ## Local storage and practice boundaries
 
@@ -71,29 +64,20 @@ System fonts, pieces matching the user-supplied reference image, an original SVG
 
 ## Verification
 
-Vitest covers rules, special moves, terminal positions, engine legality and stale results, puzzles and incorrect attempts, corrupted storage, paused recovery, increment/switching, timeout deduplication, timer cleanup, and duplicate worker responses. See `VERIFICATION.md` for recorded browser checks and limits.
+Vitest covers rules, special moves, terminal positions, engine legality and stale results, puzzles and incorrect attempts, corrupted storage, paused recovery, increment/switching, timeout deduplication, timer cleanup, and duplicate worker responses. See `../VERIFICATION.md` for recorded browser checks and limits.
 
 ## Friends and online play
 
 Open **Friends**, create an account and give your friend your username. Each player signs into a separate account on their own browser/device. Search matches username substrings case-insensitively (minimum two characters, maximum 20 results). Send a friend request; the receiver can accept, decline or block, and the sender can cancel. Accepted friends appear on both lists. Removing or blocking a friend clears pending invitations too. Blocking prevents requests and hides the blocker from the blocked player's search; an existing game continues.
 
-Choose **Invite to play**, a time control and your preferred color. Invitations expire after ten minutes. Only the receiver can accept/decline; the sender can cancel. Acceptance starts the shared game and clocks immediately and clears other invitations involving either participant. Each account can have one active game. Reopen it from Friends after navigation, reload or sign-in. Online history shows the most recent 30 games with completed-game replay and PGN; local guest history stays separate.
+Choose **Invite to play**, a time control and your preferred color. Invitations expire after ten minutes. Only the receiver can accept/decline; the sender can cancel. Acceptance starts the shared game and clocks immediately and clears other invitations involving either participant. A global navigation observer automatically opens the same game ID for **both** participants, including the sender receiving acceptance through polling. Each active game is auto-opened only once per signed-in application session, so subsequent polls do not prevent leaving the board. A newly accepted rematch opens again. Waiting senders poll every 400 ms. Each account can have one active game. Online history shows the most recent 30 games with completed-game replay and PGN; local guest history stays separate.
 
-The server reconstructs the position from SAN history and validates identity, ownership, expected ply and legality. Client FEN, clocks and results are never trusted. Both plies of an opponent move plus a legal premove commit in one SQLite transaction. One private premove per player is retained across online reloads until executed or explicitly cancelled. Invalid plans are consumed; premoves use zero extra elapsed time and receive the increment. Source-only selection stays in the mounted board. There is no pause or takeback. Offline clocks keep running, and the next server request adjudicates expiry. Draw offers require opponent consent and clear on a move. On timeout a bare king draws; other mating-possibility edge cases remain simplified, so games are casual and unrated.
+The server reconstructs the position from SAN history and validates identity, ownership, expected ply and legality. Client FEN, clocks and results are never trusted. The opponent move and any immediately executable queued replies commit in one SQLite transaction. Each player has a private queue of up to five premoves, retained across online reloads until executed or explicitly cancelled. Each real opponent reply releases the next plan; the server never invents opponent moves. An invalid head clears its dependent tail. Premoves use zero extra elapsed time and receive the increment. Existing single-premove database records are read as one-element queues without changing schema or losing intent. Source-only selection stays in the mounted board. There is no pause or takeback. Offline clocks keep running, and the next server request adjudicates expiry. Draw offers require opponent consent and clear on a move. On timeout a bare king draws; other mating-possibility edge cases remain simplified, so games are casual and unrated.
 
 State uses HTTP polling every 400 ms during active games and 1.5 seconds otherwise (four seconds in a hidden tab), plus refresh on focus. Network delay may postpone visible replies. The board disables input when disconnected. The client serializes commands and ignores stale read responses; expected ply prevents retrying the same move twice. Password reset, account deletion, email verification, chat, ranking and public matchmaking are not implemented. Clearing device settings does not delete online data.
 
-### Server setup
+### Backend connection and module boundaries
 
-The **frontend Next.js process** serves `/api/online`; no separate backend is needed. It creates `frontend/.data/online.sqlite` on first API use. Private database/WAL files are ignored by Git. Set `SHATRANJ_DATABASE_PATH` to an absolute path on persistent disk when deploying. Schema creation is idempotent; write transactions, pair uniqueness constraints, WAL and busy timeout protect concurrent connections on the same host. Use one persistent host; independent hosts or ephemeral/serverless disks are unsupported. Back up SQLite using its backup facilities, accounting for the WAL.
+`next.config.ts` forwards `/api/*` to `BACKEND_URL` (default http://127.0.0.1:4000). This is transport only; `src/server/` and the old `src/app/api/online` route handlers have been removed. Authentication, SQL, authoritative online rules and HTTP integration tests live in `../backend/`. The private online database is `backend/.data/online.sqlite`; startup migrates the former default frontend database with SQLite backup and retains the original. See [backend storage and deployment](../backend/README.md) for configuration and migration details.
 
-For two devices on a trusted LAN, run `npm run dev -- --hostname 0.0.0.0 --port 3001` and open the **same LAN address** (`http://YOUR-LAN-IP:3001/friends`) on both devices. Your OS/network must already allow access. `localhost` on another device addresses that other device. Friends outside your LAN need this server deployed at a shared HTTPS address. This change does not publish the app or alter firewall/router settings.
-
-For HTTPS/reverse proxy hosting, set `SHATRANJ_PUBLIC_ORIGIN=https://your-domain.example` to the browser-facing origin. Writes require exact same Origin, JSON content type and a body of at most 4 KiB. Passwords use salted scrypt; 256-bit session tokens are hashed in the database. Cookies are HttpOnly/SameSite=Lax and Secure on HTTPS. Sessions expire after 30 days; sign-out revokes the current session. Persistent rate buckets limit global/per-username authentication and per-account writes. Configure ingress connection limits at the host; forwarded client IPs are not trusted. Node 22's built-in SQLite is marked experimental; no native addon or ORM was added. See the [Node 22 SQLite reference](https://nodejs.org/download/release/latest-jod/docs/api/sqlite.html).
-
-### Online module boundaries
-
-- `src/lib/online.ts`, `online-i18n.ts`: shared domain/API types and Uzbek/English/Russian labels.
-- `src/server/database.ts`, `auth.ts`: schema, transactions, credentials, sessions and rate limits.
-- `src/server/online-service.ts`, `online-games.ts`, `online-input.ts`: friend/invitation transitions, authoritative chess/clocks/premoves, validated API input.
-- `src/app/api/online/route.ts`: HTTP/cookie adapter. `online-provider.tsx` handles synchronization and command serialization. Account, friends, notices and board presentation are separate components.
+`online-provider.tsx` owns client polling, serialized requests, stale response protection and reconnection. `online-game-navigation.tsx` opens an accepted game for both participants once. Account, friends, notices, premove panel and online board are focused presentation components. `src/lib/online-i18n.ts` contains Uzbek/English/Russian interface text. The private `@shatranj/shared` workspace supplies common types, clock/premove calculations and chess adapters without importing server code.

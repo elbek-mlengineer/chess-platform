@@ -47,11 +47,12 @@ export function useGame() {
       promotion: string,
       engine = false,
       expected?: PositionIdentity,
+      planning = false,
     ) => {
       commit((game) =>
         playOrQueueMove(
           game,
-          { from, to, promotion, engine, expected },
+          { from, to, promotion, engine, expected, planning },
           Date.now(),
         ),
       );
@@ -116,7 +117,7 @@ export function useGame() {
           : {
               ...game,
               paused: true,
-              premove: null,
+              premoves: [],
               clock: {
                 ...game.clock,
                 ...clockAt(game.clock, Date.now()),
@@ -132,7 +133,9 @@ export function useGame() {
     now,
     move,
     cancelPremove: () =>
-      commit((game) => (game.premove ? { ...game, premove: null } : game)),
+      commit((game) =>
+        game.premoves?.length ? { ...game, premoves: [] } : game,
+      ),
     finish,
     thinking,
     engineError,

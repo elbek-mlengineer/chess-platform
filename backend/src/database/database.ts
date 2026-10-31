@@ -1,9 +1,9 @@
-import { mkdirSync } from "node:fs";
-import path from "node:path";
-import { DatabaseSync } from "node:sqlite";
+import { mkdirSync } from 'node:fs';
+import path from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 
 export function openDatabase(filename: string) {
-  if (filename !== ":memory:")
+  if (filename !== ':memory:')
     mkdirSync(path.dirname(filename), { recursive: true });
   const db = new DatabaseSync(filename);
   db.exec(`
@@ -50,13 +50,13 @@ export function openDatabase(filename: string) {
 }
 
 export function transaction<T>(db: DatabaseSync, operation: () => T): T {
-  db.exec("BEGIN IMMEDIATE");
+  db.exec('BEGIN IMMEDIATE');
   try {
     const result = operation();
-    db.exec("COMMIT");
+    db.exec('COMMIT');
     return result;
   } catch (error) {
-    db.exec("ROLLBACK");
+    db.exec('ROLLBACK');
     throw error;
   }
 }
@@ -64,7 +64,7 @@ export function transaction<T>(db: DatabaseSync, operation: () => T): T {
 // Validate the database boundary too: corrupt records must fail visibly, not become invalid game state.
 export function textColumn(row: Record<string, unknown>, key: string): string {
   const value = row[key];
-  if (typeof value !== "string")
+  if (typeof value !== 'string')
     throw new Error(`Invalid database column: ${key}`);
   return value;
 }
@@ -73,7 +73,7 @@ export function numberColumn(
   key: string,
 ): number {
   const value = row[key];
-  if (typeof value !== "number")
+  if (typeof value !== 'number')
     throw new Error(`Invalid database column: ${key}`);
   return value;
 }

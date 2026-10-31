@@ -12,7 +12,6 @@ import {
   Handshake,
   Clock3,
   RotateCcw,
-  X,
 } from "lucide-react";
 import { useApp } from "./provider";
 import { Board, Piece } from "./board";
@@ -20,6 +19,7 @@ import { Dialog, ConfirmDialog } from "./dialog";
 import { GameSetup } from "./game-setup";
 import { GameStatus } from "./game-status";
 import { MoveHistory } from "./move-history";
+import { PremovePanel } from "./premove-panel";
 import { Replay } from "./replay";
 import { useGame } from "@/hooks/use-game";
 import {
@@ -149,12 +149,14 @@ export function Play() {
               key={session?.id || "new"}
               chess={chess}
               orientation={orientation}
-              onMove={game.move}
+              onMove={(from, to, promotion, planning) =>
+                game.move(from, to, promotion, false, undefined, planning)
+              }
               allowPremoves
               playerColor={
                 session?.mode === "computer" ? session.human : undefined
               }
-              premove={session?.premove}
+              premoves={session?.premoves}
               onCancelPremove={game.cancelPremove}
               lastMove={last}
               disabled={
@@ -203,29 +205,10 @@ export function Play() {
             </button>
           </div>
           {session && !session.result && !session.paused && (
-            <div className="premove-panel" aria-live="polite">
-              {session.premove ? (
-                <>
-                  <span>
-                    <strong>{t("premoveQueued")}</strong> {session.premove.from}{" "}
-                    → {session.premove.to}
-                    {session.premove.promotion !== "q"
-                      ? ` =${session.premove.promotion.toUpperCase()}`
-                      : ""}
-                  </span>
-                  <button
-                    className="icon-button"
-                    onClick={game.cancelPremove}
-                    aria-label={t("cancelPremove")}
-                    title={t("cancelPremove")}
-                  >
-                    <X size={17} />
-                  </button>
-                </>
-              ) : (
-                <p>{t("premoveHelp")}</p>
-              )}
-            </div>
+            <PremovePanel
+              queue={session.premoves}
+              onCancel={game.cancelPremove}
+            />
           )}
         </section>
         <aside className="game-panel panel">

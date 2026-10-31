@@ -1,0 +1,25 @@
+{
+  "name": "shatranj",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "shared",
+    "backend",
+    "frontend"
+  ],
+  "engines": {
+    "node": "^22.18.0 || ^24.0.0"
+  },
+  "scripts": {
+    "build:shared": "npm run build --workspace @shatranj/shared",
+    "dev": "npm run build:shared && concurrently --kill-others --names api,web \"npm run start:dev --workspace backend\" \"npm run dev --workspace frontend\"",
+    "build": "npm run build:shared && npm run build --workspace backend && npm run build --workspace frontend",
+    "start": "concurrently --kill-others --names api,web \"npm run start:prod --workspace backend\" \"npm run start --workspace frontend\"",
+    "typecheck": "npm run build:shared && npm run typecheck --workspace backend && npm run typecheck --workspace frontend",
+    "lint": "npm run build:shared && npm run lint --workspace backend && npm run lint --workspace frontend",
+    "test": "npm run build:shared && npm test --workspace backend && npm run test:e2e --workspace backend -- --runInBand && npm test --workspace frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
